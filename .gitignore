@@ -1,0 +1,11 @@
+*.avi
+*.pt
+model.pt
+*.png
+*.jpg
+*.svg
+*.ipynb_checkpoints
+__pycache__
+runs/*
+*tfevents*
+
