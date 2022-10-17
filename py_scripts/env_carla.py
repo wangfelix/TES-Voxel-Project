@@ -225,6 +225,14 @@ class Environment:
 
         self.world.set_weather(weather)
 
+    def getRelevantWaypoints(self):
+        waypoints = self.map.generate_waypoints(2.0)
+        vehicle_loc = self.vehicle.get_location()
+        wp = self.map.get_waypoint(vehicle_loc, project_to_road=True,
+                      lane_type=carla.LaneType.Driving)
+
+        return waypoints, wp
+
     def destroy_actor(self, actor):
         actor.destroy()
 

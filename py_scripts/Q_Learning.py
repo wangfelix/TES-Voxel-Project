@@ -3,6 +3,7 @@
 
 
 from operator import truediv
+from turtle import distance
 import cv2
 import time
 import torch
@@ -62,13 +63,17 @@ PREVIEW = False
 VIDEO_EVERY = 1_000
 PATH = "model.pt"
 IM_HEIGHT = 256
-IM_WIDTH = 256 * 2
+IM_WIDTH = 256
+
+EGO_X = 0
+EGO_Y = 1
 
 def main(withAE=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if device == "cpu": print("!!! device is CPU !!!")
     ae_model = AutoEncoder()
     evaluater = Evaluater(ae_model, device, PATH)
+    DISTANCE_MATRIX = init_distance_matrices(EGO_X,EGO_Y)
 
     writer = SummaryWriter()
 #     env = Environment(host="tks-fly.fzi.de", port=2000)
@@ -91,10 +96,10 @@ def main(withAE=False):
 
         obs_current = env.get_observation()
         obs_current = obs_current[0]
-        if withAE:
-            # heatmap = evaluater.getHeatMap(obs_current)
-            detectionMap = evaluater.getDetectionMap(obs_current)
-            obs_current = np.hstack((obs_current, detectionMap))
+        # if withAE:
+        #     # heatmap = evaluater.getHeatMap(obs_current)
+        #     detectionMap = evaluater.getColoredDetectionMap(obs_current)
+        #     obs_current = np.hstack((obs_current, detectionMap))
         
         obs_current = np.transpose(obs_current, (2,1,0))
         obs_current = np.array([obs_current])
@@ -117,6 +122,12 @@ def main(withAE=False):
             else:
                 action = trainer.select_action(obs_current, epsilon)
             obs_next, reward, done, _ = env.step(action)
+
+            if withAE:
+                detectionMap = evaluater.getDetectionMap(obs_next)
+                reward = calcualte_enriched_reward(reward, detectionMap, DISTANCE_MATRIX)
+                
+
             reward_per_episode += reward
             reward_torch = torch.tensor([reward], device=device)  # For compatibility with PyTorch
 
@@ -131,7 +142,7 @@ def main(withAE=False):
                 obs_next = obs_next[0] #no segemntation
                 if withAE:
                     # heatmap = evaluater.getHeatMap(obs_next)
-                    detectionMap = evaluater.getDetectionMap(obs_next)
+                    detectionMap = evaluater.getColoredDetectionMap(obs_next)
                     obs_next = np.hstack((obs_next, detectionMap))
 
                 obs_next = np.transpose(obs_next, (2,1,0))
@@ -186,6 +197,47 @@ def main(withAE=False):
 
     writer.flush()
 
+# generate distance map from the center of the car to all other pixels in the space (works only in BEV)
+# remains static for the whole training since the car in the image is never moving
+def init_distance_matrices(pos_x, pos_y):
+    size = IM_WIDTH
+    ring_count = size # we want to double the size. each ring adds a size of 2 
+    distance_matrix = np.zeros((1,1))
+    for x in range(ring_count):
+        distance_matrix = add_ring(distance_matrix, x + 1)
+
+
+    max_distance = max(distance_matrix.flatten())
+
+    distance_matrix = distance_matrix[size - pos_y: size - pos_y + size, size - pos_x: size - pos_x + size]
+    distance_matrix
+
+    max_distance_matrix = np.zeros((size, size)) + max_distance
+
+    distance_matrix = distance_matrix / max_distance_matrix
+    distance_matrix
+
+    return distance_matrix
+
+def calcualte_enriched_reward(reward, detectionMap, distanceMap):
+    if reward == -1 : return -1 #collision or timeout
+
+    rewardMap = detectionMap * distanceMap #element wise
+    total_reward = np.sum(rewardMap)
+    reward = total_reward / (rewardMap.shape[0] * rewardMap.shape[1] * rewardMap.shape[2] - 1) # minus one, because the origion of the car should not be taken into count and is always zero
+
+    return reward
+
+
+
+# given matrix a, adds a ring to it of the given value:
+# a   --->    b-b-b
+#             b-a-b
+#             b-b-b
+def add_ring(matrix, value):
+    b = np.zeros(tuple(s+2 for s in matrix.shape), matrix.dtype) + value
+    b[tuple(slice(1,-1) for s in matrix.shape)] = matrix
+    return b
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -193,5 +245,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     withAE = args.AE
+    if withAE == "True" or withAE == "true":
+        withAE = True
+    elif withAE == "False" or withAE == "false":
+        withAE = False
 
     main(withAE)

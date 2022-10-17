@@ -66,37 +66,53 @@ class Evaluater:
                     hm[x][y][1] = 1 - 2*(errormap[x][y] - 0.5)
                     hm[x][y][2] = 1 - 2*(errormap[x][y] - 0.5)
 
-        return hm, errormap
+        return hm, errormap #shape: (w,h,3)
 
-    # colors the pixels that are above the avg error and returns the map
+    # returns the map of anomaly pixels
     def heatToDetection(self, errormap):
-        mu_err = np.average(errormap)
-        flatten = errormap.reshape(-1)
-        median, lowerSplit, upperSplit = Evaluater.get_median_set(flatten)
-        median_Upper, _, upperSplit = Evaluater.get_median_set(upperSplit)
-        median_Lower, _, upperSplit = Evaluater.get_median_set(lowerSplit)
-        rangeIQR = median_Upper - median_Lower
+        errormap = np.transpose(errormap, (2,1,0)) # new shape: (3,w,h)
+        errormap = errormap.mean(0) #avg of the 3 pixel values | new shape: (1,w,h)
+        errormap = errormap.squeeze()
 
-        baseline = 5.5 * rangeIQR + median_Upper
+        # mu_err = np.average(errormap)
+        # flatten = errormap.reshape(-1)
+        # median, lowerSplit, upperSplit = Evaluater.get_median_set(flatten)
+        # median_Upper, _, upperSplit = Evaluater.get_median_set(upperSplit)
+        # median_Lower, _, upperSplit = Evaluater.get_median_set(lowerSplit)
+        # rangeIQR = median_Upper - median_Lower
+
+        # baseline = 5.5 * rangeIQR + median_Upper
 
         baseline = 0.5 # best for a MAE
-        detectionMap = np.zeros((errormap.shape[0], errormap.shape[1], 3)).astype("float32")
-        detectionMap = np.transpose(detectionMap, (2,1,0))
-        detectionMap[0][errormap > baseline] = 0.98
-        detectionMap[1][errormap > baseline] = 0.55
-        detectionMap[2][errormap > baseline] = 0.32
 
-        return np.transpose(detectionMap, (1,2,0))
+
+        errormap[errormap > baseline] = 1.0
+        errormap[errormap <= baseline] = 0.0
+
+        return errormap # shape: w,h
+
+    # colors the pixels that are anomalys
+    def colorDetectionMap(self, dtMap):
+        detectionMap = np.zeros((3, dtMap.shape[0], dtMap.shape[1])).astype("float32")
+        detectionMap[0][dtMap == 1.0] = 0.98
+        detectionMap[1][dtMap == 1.0] = 0.55
+        detectionMap[2][dtMap == 1.0] = 0.32
+
+        return np.transpose(detectionMap, (1,2,0)) #shape: (w,h,3)
     
-    def getDetectionMap(self, input):
-        _, output = self.predict(input)
-        hm, errormap = self.predictToHeatMap(input, output)
-        return self.heatToDetection(errormap)
+    def getColoredDetectionMap(self, input):
+        dtMap = self.getDetectionMap(input)
+        return self.colorDetectionMap(dtMap)
 
     def getHeatMap(self, input):
         _, output = self.predict(input)
         hm, errormap = self.predictToHeatMap(input, output)
         return hm
+    
+    def getDetectionMap(self, input):
+        _, output = self.predict(input)
+        hm, errormap = self.predictToHeatMap(input, output)
+        return self.heatToDetection(errormap)
 
 # ==============================================================================
 # -- Distance measures ---------------------------------------------------------

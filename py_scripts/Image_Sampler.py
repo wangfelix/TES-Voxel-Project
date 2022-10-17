@@ -43,6 +43,16 @@ class Sampler:
         self.cam_zoom = cam_zoom
         self.host = host
 
+    def get_waypoints(self, world_model=None, random_spawn=True):
+        if world_model == None: world_model = MAP_SET[random.randrange(0,len(MAP_SET))]
+
+        env = Environment(world=world_model, s_width=self.s_width, s_height=self.s_height, cam_height=self.cam_height, cam_rotation=self.cam_rotation, cam_zoom=self.cam_zoom, host=self.host, random_spawn=random_spawn)
+        env.init_ego()
+        image, segmentation = env.reset()
+        waypoints, wp = env.getRelevantWaypoints()
+        env.deleteEnv()
+        return waypoints, wp
+
     # turns carla segmentation into an image:
     # r-channel (first) represents the label
     def get_segmentation(self, obs):
