@@ -48,10 +48,7 @@ class Evaluater:
 # ==============================================================================
 
     def predictToHeatMap(self, input, output):
-        #1 grayscale
-        g_input = np.dot(input[...,:3], [0.2989, 0.5870, 0.1140])
-        g_output = np.dot(output[...,:3], [0.2989, 0.5870, 0.1140]) # dims are now: w,h
-        errormap = abs(g_input-g_output)
+        errormap = self.getErrorMap(input, output)
         
         #2 heatmap
         hm = np.zeros((input.shape[0],input.shape[1],3))
@@ -68,6 +65,13 @@ class Evaluater:
                     hm[x][y][2] = 1 - 2*(errormap[x][y] - 0.5)
 
         return hm, errormap #shape: hm=(w,h,3), errormap=(w,h)
+
+    # grayscale and calculate difference
+    def getErrorMap(self, input, output):
+        g_input = np.dot(input[...,:3], [0.2989, 0.5870, 0.1140])
+        g_output = np.dot(output[...,:3], [0.2989, 0.5870, 0.1140]) # dims are now: w,h
+        errormap = abs(g_input-g_output)
+        return errormap
 
     # returns the map of anomaly pixels
     def heatToDetection(self, errormap):
@@ -113,7 +117,7 @@ class Evaluater:
     
     def getDetectionMap(self, input):
         _, output = self.predict(input)
-        hm, errormap = self.predictToHeatMap(input, output)
+        errormap = self.getErrorMap(input, output)
         return self.heatToDetection(errormap)
 
 # ==============================================================================

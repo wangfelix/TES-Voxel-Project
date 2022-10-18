@@ -229,8 +229,8 @@ def calcualte_enriched_reward(reward, detectionMap, distanceMap):
 
     rewardMap = detectionMap * distanceMap # element wise
     total_reward = np.sum(rewardMap)
-    reward = total_reward / (rewardMap.shape[0] * rewardMap.shape[1] - 1) # minus one, because the origion of the car should not be taken into count and is always zero
-    reward = 1 - reward * 0.001
+    penalty = total_reward / (rewardMap.shape[0] * rewardMap.shape[1] - 1) # minus one, because the origion of the car should not be taken into count and is always zero
+    reward = 1 - penalty# * 0.1
     reward = np.float32(reward)
 
     return reward
