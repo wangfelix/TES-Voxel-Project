@@ -22,7 +22,7 @@ class DQN(nn.Module):
             return (size - (kernel_size - 1) - 1) // stride  + 1
 
         if withAE:
-            convw1 = conv2d_size_out(IM_WIDTH*2)
+            convw1 = conv2d_size_out(IM_WIDTH)
         else:
             convw1 = conv2d_size_out(IM_WIDTH)
         convh1 = conv2d_size_out(IM_HEIGHT)

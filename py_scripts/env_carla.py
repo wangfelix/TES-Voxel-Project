@@ -198,6 +198,7 @@ class Environment:
         transform.location.y = transform.location.y + vec.y * distance
         transform.location.z = transform.location.z + vec.z * distance 
         player = self.world.try_spawn_actor(random.choice(ped_blueprints),transform)
+        self.actor_list.append(player)
         return player #for destruction
 
     def change_Weather(self):
@@ -322,7 +323,11 @@ class Environment:
         # #     # if self.isActorAlive(actor):
         # #     # if actor.type_id == "vehicle.tesla.model3":
         #     actor.destroy()
+        # time.sleep(5)
 
+        # while not len(self.actor_list) == 0:
+        #     actor = self.actor_list.pop(0)
+        #     actor.destroy()
         self.client.apply_batch([carla.command.DestroyActor(x) for x in self.actor_list])
-        time.sleep(2)
+        # time.sleep(5)
 

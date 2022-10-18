@@ -3,6 +3,7 @@
 
 
 from operator import truediv
+import re
 from turtle import distance
 import cv2
 import time
@@ -18,7 +19,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from clearml import Task
 
-task = Task.init(project_name="bogdoll/Anomaly_detection_Moritz", task_name="QAgent_local", output_uri="https://tks-zx-01.fzi.de:8081")
+task = Task.init(project_name="bogdoll/Anomaly_detection_Moritz", task_name="QAgent_reward", output_uri="s3://tks-zx.fzi.de:9000/clearml")
 task.set_base_docker(
             "nvcr.io/nvidia/pytorch:21.10-py3",
             docker_setup_bash_script="apt-get update && apt-get install -y python3-opencv",
@@ -65,8 +66,8 @@ PATH = "model.pt"
 IM_HEIGHT = 256
 IM_WIDTH = 256
 
-EGO_X = 0
-EGO_Y = 1
+EGO_X = 246
+EGO_Y = 128
 
 def main(withAE=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -74,6 +75,7 @@ def main(withAE=False):
     ae_model = AutoEncoder()
     evaluater = Evaluater(ae_model, device, PATH)
     DISTANCE_MATRIX = init_distance_matrices(EGO_X,EGO_Y)
+    print(DISTANCE_MATRIX)
 
     writer = SummaryWriter()
 #     env = Environment(host="tks-fly.fzi.de", port=2000)
@@ -95,7 +97,7 @@ def main(withAE=False):
         env.spawn_anomaly()
 
         obs_current = env.get_observation()
-        obs_current = obs_current[0]
+        obs_current = obs_current[0] #no segemntation
         # if withAE:
         #     # heatmap = evaluater.getHeatMap(obs_current)
         #     detectionMap = evaluater.getColoredDetectionMap(obs_current)
@@ -117,15 +119,18 @@ def main(withAE=False):
             chw_list.append(obs_current)
 
             # Perform action on observation and buildup replay memory
+
             if i % VIDEO_EVERY == 0:
                 action = trainer.select_action(obs_current, 0)
             else:
                 action = trainer.select_action(obs_current, epsilon)
             obs_next, reward, done, _ = env.step(action)
+            obs_next = obs_next[0] #no segemntation
 
             if withAE:
                 detectionMap = evaluater.getDetectionMap(obs_next)
                 reward = calcualte_enriched_reward(reward, detectionMap, DISTANCE_MATRIX)
+                # print(reward)
                 
 
             reward_per_episode += reward
@@ -139,11 +144,10 @@ def main(withAE=False):
             if done:
                 obs_next = None
             else:
-                obs_next = obs_next[0] #no segemntation
-                if withAE:
-                    # heatmap = evaluater.getHeatMap(obs_next)
-                    detectionMap = evaluater.getColoredDetectionMap(obs_next)
-                    obs_next = np.hstack((obs_next, detectionMap))
+                # if withAE:
+                #     # heatmap = evaluater.getHeatMap(obs_next)
+                #     detectionMap = evaluater.getColoredDetectionMap(obs_next)
+                #     obs_next = np.hstack((obs_next, detectionMap))
 
                 obs_next = np.transpose(obs_next, (2,1,0))
                 obs_next = np.array([obs_next])
@@ -166,12 +170,13 @@ def main(withAE=False):
 
                 if reward_per_episode > reward_best:
                     reward_best = reward_per_episode
-                    tchw_list = torch.stack(chw_list)  # Adds "list" like entry --> TCHW
-                    tchw_list = torch.squeeze(tchw_list)
-                    name = "DQN Champ: " + str(reward_per_episode)
-                    writer.add_video(
-                        tag=name, vid_tensor=tchw_list.unsqueeze(0), global_step=i
-                    )  # Unsqueeze adds batch --> BTCHW
+                    save_video(chw_list, reward_best, i, writer, evaluater)
+                    # tchw_list = torch.stack(chw_list)  # Adds "list" like entry --> TCHW
+                    # tchw_list = torch.squeeze(tchw_list)
+                    # name = "DQN Champ: " + str(reward_per_episode)
+                    # writer.add_video(
+                    #     tag=name, vid_tensor=tchw_list.unsqueeze(0), global_step=i
+                    # )  # Unsqueeze adds batch --> BTCHW
                     torch.save(trainer.policy_net.state_dict(), os.path.join(gettempdir(), "dqn_" + str(i) + ".pt"))
                 break
 
@@ -220,11 +225,13 @@ def init_distance_matrices(pos_x, pos_y):
     return distance_matrix
 
 def calcualte_enriched_reward(reward, detectionMap, distanceMap):
-    if reward == -1 : return -1 #collision or timeout
+    if reward == -1 : return -1 # collision or timeout
 
-    rewardMap = detectionMap * distanceMap #element wise
+    rewardMap = detectionMap * distanceMap # element wise
     total_reward = np.sum(rewardMap)
-    reward = total_reward / (rewardMap.shape[0] * rewardMap.shape[1] * rewardMap.shape[2] - 1) # minus one, because the origion of the car should not be taken into count and is always zero
+    reward = total_reward / (rewardMap.shape[0] * rewardMap.shape[1] - 1) # minus one, because the origion of the car should not be taken into count and is always zero
+    reward = 1 - reward
+    reward = np.float32(reward)
 
     return reward
 
@@ -238,6 +245,69 @@ def add_ring(matrix, value):
     b = np.zeros(tuple(s+2 for s in matrix.shape), matrix.dtype) + value
     b[tuple(slice(1,-1) for s in matrix.shape)] = matrix
     return b
+
+
+def save_video(chw_list, reward_best, step, writer, evaluater):
+    aug_list = []
+    for img in chw_list:
+        img = img.numpy()
+        img = np.squeeze(img)
+        img = np.transpose(img, (2,1,0)) # shape: w,h,3
+        detectionMap = evaluater.getColoredDetectionMap(img)
+        detectionMap = color_pixel(detectionMap)
+        seperator = np.zeros((256,10,3))
+        seperator[:,:,0] = 1.
+        aug_img = np.hstack((img, seperator, detectionMap))
+        aug_img = np.transpose(aug_img, (2,1,0)) # shape: 3,w,h
+        aug_img = torch.as_tensor(np.array([aug_img]))
+        aug_list.append(aug_img)
+
+    tchw_list = torch.stack(aug_list)  # Adds "list" like entry --> TCHW
+    tchw_list = torch.squeeze(tchw_list)
+    tchw_list = tchw_list.unsqueeze(0)
+    name = "DQN Champ: " + str(reward_best)
+    writer.add_video(
+        tag=name, vid_tensor=tchw_list, global_step=step
+    )  # Unsqueeze adds batch --> BTCHW
+
+def color_pixel(img):
+    img[EGO_X+1, EGO_Y+1, 0] = 0.
+    img[EGO_X+1, EGO_Y+1, 1] = 0.
+    img[EGO_X+1, EGO_Y+1, 2] = 1.
+
+    img[EGO_X+1, EGO_Y, 0] = 0.
+    img[EGO_X+1, EGO_Y, 1] = 0.
+    img[EGO_X+1, EGO_Y, 2] = 1.
+
+    img[EGO_X, EGO_Y+1, 0] = 0.
+    img[EGO_X, EGO_Y+1, 1] = 0.
+    img[EGO_X, EGO_Y+1, 2] = 1.
+
+    img[EGO_X-1, EGO_Y-1, 0] = 0.
+    img[EGO_X-1, EGO_Y-1, 1] = 0.
+    img[EGO_X-1, EGO_Y-1, 2] = 1.
+
+    img[EGO_X-1, EGO_Y, 0] = 0.
+    img[EGO_X-1, EGO_Y, 1] = 0.
+    img[EGO_X-1, EGO_Y, 2] = 1.
+
+    img[EGO_X, EGO_Y-1, 0] = 0.
+    img[EGO_X, EGO_Y-1, 1] = 0.
+    img[EGO_X, EGO_Y-1, 2] = 1.
+
+    img[EGO_X+1, EGO_Y-1, 0] = 0.
+    img[EGO_X+1, EGO_Y-1, 1] = 0.
+    img[EGO_X+1, EGO_Y-1, 2] = 1.
+
+    img[EGO_X-1, EGO_Y+1, 0] = 0.
+    img[EGO_X-1, EGO_Y+1, 1] = 0.
+    img[EGO_X-1, EGO_Y+1, 2] = 1.
+
+    img[EGO_X, EGO_Y, 0] = 0.
+    img[EGO_X, EGO_Y, 1] = 0.
+    img[EGO_X, EGO_Y, 2] = 1.
+
+    return img
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

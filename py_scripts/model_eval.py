@@ -30,6 +30,7 @@ class Evaluater:
         self.device = device
         if self.device == "cpu": print("!= Warning: Device == CPU --> slow runtime =!")
 
+    # input image size: w,h,3
     def predict(self, in_image):
         with torch.no_grad():
             img_tensor = np.transpose(in_image, (2,1,0))
@@ -49,7 +50,7 @@ class Evaluater:
     def predictToHeatMap(self, input, output):
         #1 grayscale
         g_input = np.dot(input[...,:3], [0.2989, 0.5870, 0.1140])
-        g_output = np.dot(output[...,:3], [0.2989, 0.5870, 0.1140])
+        g_output = np.dot(output[...,:3], [0.2989, 0.5870, 0.1140]) # dims are now: w,h
         errormap = abs(g_input-g_output)
         
         #2 heatmap
@@ -66,13 +67,14 @@ class Evaluater:
                     hm[x][y][1] = 1 - 2*(errormap[x][y] - 0.5)
                     hm[x][y][2] = 1 - 2*(errormap[x][y] - 0.5)
 
-        return hm, errormap #shape: (w,h,3)
+        return hm, errormap #shape: hm=(w,h,3), errormap=(w,h)
 
     # returns the map of anomaly pixels
     def heatToDetection(self, errormap):
-        errormap = np.transpose(errormap, (2,1,0)) # new shape: (3,w,h)
-        errormap = errormap.mean(0) #avg of the 3 pixel values | new shape: (1,w,h)
-        errormap = errormap.squeeze()
+        
+        # errormap = np.transpose(errormap, (2,1,0)) # new shape: (3,w,h)
+        # errormap = errormap.mean(0) #avg of the 3 pixel values | new shape: (1,w,h)
+        # errormap = errormap.squeeze()
 
         # mu_err = np.average(errormap)
         # flatten = errormap.reshape(-1)
