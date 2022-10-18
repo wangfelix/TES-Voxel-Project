@@ -19,7 +19,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from clearml import Task
 
-task = Task.init(project_name="bogdoll/Anomaly_detection_Moritz", task_name="QAgent_reward", output_uri="s3://tks-zx.fzi.de:9000/clearml")
+task = Task.init(project_name="bogdoll/Anomaly_detection_Moritz", task_name="QAgent_Reward", output_uri="s3://tks-zx.fzi.de:9000/clearml")
 task.set_base_docker(
             "nvcr.io/nvidia/pytorch:21.10-py3",
             docker_setup_bash_script="apt-get update && apt-get install -y python3-opencv",
@@ -170,7 +170,7 @@ def main(withAE=False):
 
                 if reward_per_episode > reward_best:
                     reward_best = reward_per_episode
-                    save_video(chw_list, reward_best, i, writer, evaluater)
+                    save_video(chw_list, reward_best, i, writer, evaluater, withAE)
                     # tchw_list = torch.stack(chw_list)  # Adds "list" like entry --> TCHW
                     # tchw_list = torch.squeeze(tchw_list)
                     # name = "DQN Champ: " + str(reward_per_episode)
@@ -230,7 +230,7 @@ def calcualte_enriched_reward(reward, detectionMap, distanceMap):
     rewardMap = detectionMap * distanceMap # element wise
     total_reward = np.sum(rewardMap)
     reward = total_reward / (rewardMap.shape[0] * rewardMap.shape[1] - 1) # minus one, because the origion of the car should not be taken into count and is always zero
-    reward = 1 - reward
+    reward = 1 - reward * 0.001
     reward = np.float32(reward)
 
     return reward
@@ -247,22 +247,24 @@ def add_ring(matrix, value):
     return b
 
 
-def save_video(chw_list, reward_best, step, writer, evaluater):
-    aug_list = []
-    for img in chw_list:
-        img = img.numpy()
-        img = np.squeeze(img)
-        img = np.transpose(img, (2,1,0)) # shape: w,h,3
-        detectionMap = evaluater.getColoredDetectionMap(img)
-        detectionMap = color_pixel(detectionMap)
-        seperator = np.zeros((256,10,3))
-        seperator[:,:,0] = 1.
-        aug_img = np.hstack((img, seperator, detectionMap))
-        aug_img = np.transpose(aug_img, (2,1,0)) # shape: 3,w,h
-        aug_img = torch.as_tensor(np.array([aug_img]))
-        aug_list.append(aug_img)
+def save_video(chw_list, reward_best, step, writer, evaluater, withVAE):
+    if withVAE:
+        aug_list = []
+        for img in chw_list:
+            img = img.numpy()
+            img = np.squeeze(img)
+            img = np.transpose(img, (2,1,0)) # shape: w,h,3
+            detectionMap = evaluater.getColoredDetectionMap(img)
+            detectionMap = color_pixel(detectionMap)
+            seperator = np.zeros((256,2,3))
+            seperator[:,:,0] = 1.
+            aug_img = np.hstack((img, seperator, detectionMap))
+            aug_img = np.transpose(aug_img, (2,1,0)) # shape: 3,w,h
+            aug_img = torch.as_tensor(np.array([aug_img]))
+            aug_list.append(aug_img)
+        tchw_list = aug_list
 
-    tchw_list = torch.stack(aug_list)  # Adds "list" like entry --> TCHW
+    tchw_list = torch.stack(tchw_list)  # Adds "list" like entry --> TCHW
     tchw_list = torch.squeeze(tchw_list)
     tchw_list = tchw_list.unsqueeze(0)
     name = "DQN Champ: " + str(reward_best)
@@ -311,7 +313,7 @@ def color_pixel(img):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--AE", type=bool, default=False) # turn on Autoencoder
+    parser.add_argument("--AE", type=bool, default=True) # turn on Autoencoder
 
     args = parser.parse_args()
     withAE = args.AE

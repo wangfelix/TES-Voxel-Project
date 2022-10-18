@@ -85,7 +85,7 @@ class Evaluater:
 
         # baseline = 5.5 * rangeIQR + median_Upper
 
-        baseline = 0.5 # best for a MAE
+        baseline = 0.5 # best for a MAE 0.5
 
 
         errormap[errormap > baseline] = 1.0
