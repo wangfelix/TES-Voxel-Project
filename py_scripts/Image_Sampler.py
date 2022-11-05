@@ -50,7 +50,7 @@ class Sampler:
         env.init_ego()
         image, segmentation = env.reset()
         waypoints, wp = env.getRelevantWaypoints()
-        env.deleteEnv()
+        env.deleteActors()
         return waypoints, wp
 
     # turns carla segmentation into an image:
@@ -77,16 +77,22 @@ class Sampler:
 
         env = Environment(world=world_model, s_width=self.s_width, s_height=self.s_height, cam_height=self.cam_height, cam_rotation=self.cam_rotation, cam_zoom=self.cam_zoom, host=self.host, random_spawn=random_spawn)
         env.init_ego()
-        image, segmentation = env.reset()
-        env.deleteEnv()
+        # image, segmentation = env.reset()
+        env.reset()
+        env.plotWaypoints()
+        time.sleep(10)
+        image, segmentation = env.get_observation()
+        env.deleteActors()
         return image, segmentation
 
-    def sample_Ride(self, world_model=None, random_spawn=True, num_of_snaps=100, tick_rate=0.5, anomaly=False, anomaly_weather=False, anomalyDespawnDelay=None):
+    def sample_Ride(self, world_model=None, random_spawn=True, num_of_snaps=100, tick_rate=0.5, anomaly=False, anomaly_weather=False, anomalyDespawnDelay=None, random_action_prob=0.01):
         if world_model == None: world_model = MAP_SET[random.randrange(0,len(MAP_SET))]
 
         env = Environment(world=world_model, s_width=self.s_width, s_height=self.s_height, cam_height=self.cam_height, cam_rotation=self.cam_rotation, cam_zoom=self.cam_zoom, host=self.host, random_spawn=random_spawn)
         env.init_ego()
+        env.setAutoPilot(True)
         env.reset()
+        env.plotWaypoints()
         images = []
         segmentations = []
         anomalySpawnDelay = int(num_of_snaps / 2)
@@ -102,18 +108,21 @@ class Sampler:
             if anomaly_weather and not anomalyDespawnDelay == None and x == anomalySpawnDelay + anomalyDespawnDelay:
                 env.reset_Weather()
 
+            self.potentialStep(env, random_action_prob)
+
             image, segmentation = env.get_observation()
             images.append(image)
             segmentations.append(segmentation)
             time.sleep(tick_rate)
-        env.deleteEnv()
+        env.deleteActors()
 
         # needs to be out of loop because render time would mess up a smooth video
         tmp = []
-        for segment in segmentations:
-            segment = self.get_segmentation(segment)
-            tmp.append(segment)
-        segmentations = tmp
+        if not segmentations[0] == None:
+            for segment in segmentations:
+                segment = self.get_segmentation(segment)
+                tmp.append(segment)
+            segmentations = tmp
 
         return images, segmentations
 
@@ -128,6 +137,7 @@ class Sampler:
             ax2.set_title(f"Segmentation")
             ax2.imshow(segment)
         else:
+            plt.figure(figsize=(6,6))
             plt.imshow(image)
             plt.show()
 
@@ -150,6 +160,9 @@ class Sampler:
 
         print(f"Finished | Collected: {str(samplesPerEnv * len(MAP_SET))} samples.")
 
+    def potentialStep(self, env, proability):
+        v = random.random()
+        if v <= proability: env.makeRandomAction()
 
 # ==============================================================================
 # -- Collect huge amounts of samples (> 20k) --> save after each frame ---------
@@ -166,16 +179,18 @@ class Sampler:
         
         print(f"Finished | Collected: {str(samplesPerEnv * len(MAP_SET))} samples.")
 
-    def sample_save_Ride(self, save_index, storagePath, world_model=None, random_spawn=True, num_of_snaps=100, tick_rate=1):
+    def sample_save_Ride(self, save_index, storagePath, world_model=None, random_spawn=True, num_of_snaps=100, tick_rate=1, random_action_prob=0.001):
         if world_model == None: world_model = MAP_SET[random.randrange(0,len(MAP_SET))]
 
         env = Environment(world=world_model, s_width=self.s_width, s_height=self.s_height, cam_height=self.cam_height, cam_rotation=self.cam_rotation, cam_zoom=self.cam_zoom, host=self.host, random_spawn=random_spawn)
         env.init_ego()
+        env.setAutoPilot(True)
         env.reset()
         pre_position = np.array([0.,0.,0.])
 
         x = 0
         while x < num_of_snaps:
+            self.potentialStep(env, random_action_prob)
             image,_ = env.get_observation()
             position = env.get_Vehicle_positionVec()
             # are we waiting at a red light ? >> ignore snap
@@ -187,7 +202,7 @@ class Sampler:
             pre_position = np.array(position)
             time.sleep(tick_rate)
         
-        env.deleteEnv()
+        env.deleteActors()
         return save_index
 # ==============================================================================
 # -- End of huge sample code ---------------------------------------------------
@@ -461,4 +476,4 @@ if __name__ == "__main__":
     # sampler = Sampler(s_width=256, s_height=256, cam_height=4, cam_zoom=50, cam_rotation=-12) # best 
     sampler = Sampler(s_width=256, s_height=256, cam_height=4.5, cam_zoom=130, cam_rotation=-90)
     # sampler.collect_Samples(sample_size=10, tick_rate=5)
-    sampler.collect_huge_Samples(sample_size=10, tick_rate=2)
+    sampler.collect_huge_Samples(sample_size=40, tick_rate=3)

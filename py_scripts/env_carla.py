@@ -55,7 +55,9 @@ class Environment:
         # traffic_manager.set_respawn_dormant_vehicles(True)
         # traffic_manager.set_synchronous_mode(True)
 
+        self.autoPilotOn = False
         self.random_spawn = random_spawn
+
         if not world == None: self.world = self.client.load_world(world)
         else: self.world = self.client.load_world("Town01_Opt")
 
@@ -81,11 +83,8 @@ class Environment:
             sun_altitude_angle=70.0)
 
         self.world.set_weather(weather)
+        self.vehicle = None # important
 
-        self.observation = None
-        self.observation_seg = None
-
-        self.collision_hist = []
 
     def init_ego(self):
         self.vehicle_bp = self.bp_lib.find('vehicle.tesla.model3')
@@ -93,7 +92,7 @@ class Environment:
         self.ss_camera_bp_sg = self.bp_lib.find('sensor.camera.semantic_segmentation')
         self.col_sensor_bp = self.bp_lib.find('sensor.other.collision')
 
-        # Configure sensors
+        # Configure rgb sensors
         self.ss_camera_bp.set_attribute('image_size_x', f'{self.s_width}')
         self.ss_camera_bp.set_attribute('image_size_y', f'{self.s_height}')
         self.ss_camera_bp.set_attribute('fov', str(self.cam_zoom))
@@ -113,11 +112,15 @@ class Environment:
         self.col_sensor_rotation = carla.Rotation(0,0,0)
         self.col_sensor_transform = carla.Transform(self.col_sensor_location, self.col_sensor_rotation)
 
+        self.collision_hist = []
 
 
 
     def reset(self):
-        self.deleteEnv()
+
+        # if not self.vehicle == None:
+        #     self.vehicle.set_autopilot(self.autoPilotOn)
+        self.deleteActors()
         
         self.actor_list = []
         self.collision_hist = []
@@ -126,26 +129,25 @@ class Environment:
         if self.random_spawn: transform = random.choice(self.spawn_points)
         else: transform = self.spawn_points[1]
         self.vehicle = self.world.spawn_actor(self.vehicle_bp, transform)
-        self.vehicle.set_autopilot(True)
+        self.vehicle.set_autopilot(self.autoPilotOn)
         self.actor_list.append(self.vehicle)
 
         # Attach and listen to image sensor (RGB)
         self.ss_cam = self.world.spawn_actor(self.ss_camera_bp, self.ss_cam_transform, attach_to=self.vehicle, attachment_type=carla.AttachmentType.Rigid)
-        weak_self = weakref.ref(self)
         self.actor_list.append(self.ss_cam)
-        self.ss_cam.listen(lambda data: self.__process_sensor_data(data, weak_self))
+        self.ss_cam.listen(lambda data: self.__process_sensor_data(data))
 
         # Attach and listen to image sensor (Semantic Seg)
         self.ss_cam_seg = self.world.spawn_actor(self.ss_camera_bp_sg, self.ss_cam_transform, attach_to=self.vehicle, attachment_type=carla.AttachmentType.Rigid)
         self.actor_list.append(self.ss_cam_seg)
-        self.ss_cam_seg.listen(lambda data: self.__process_sensor_data_Seg(data, weak_self))
+        self.ss_cam_seg.listen(lambda data: self.__process_sensor_data_Seg(data))
 
         time.sleep(RESET_SLEEP_TIME)   # sleep to get things started and to not detect a collision when the car spawns/falls from sky.
 
         # Attach and listen to collision sensor
         self.col_sensor = self.world.spawn_actor(self.col_sensor_bp, self.col_sensor_transform, attach_to=self.vehicle)
         self.actor_list.append(self.col_sensor)
-        self.col_sensor.listen(lambda event: self.__process_collision_data(event, weak_self))
+        self.col_sensor.listen(lambda event: self.__process_collision_data(event))
 
 
         self.episode_start = time.time()
@@ -226,6 +228,15 @@ class Environment:
 
         self.world.set_weather(weather)
 
+    def makeRandomAction(self):
+        v = random.random()
+        if v <= 0.33333333:
+            self.step(0)
+        elif v <= 0.6666666:
+            self.step(1)
+        elif v <= 1.0:
+            self.step(2)
+
     def getRelevantWaypoints(self):
         waypoints = self.map.generate_waypoints(2.0)
         vehicle_loc = self.vehicle.get_location()
@@ -233,6 +244,37 @@ class Environment:
                       lane_type=carla.LaneType.Driving)
 
         return waypoints, wp
+    
+    def plotWaypoints(self):
+        waypoints = self.map.generate_waypoints(3.0)
+        vehicle_loc = self.vehicle.get_location()
+
+        # transform = self.get_Vehicle_transform() #get vehicle location and rotation (0-360 degrees)
+        # vec = transform.rotation.get_forward_vector()
+        # transform.location.x = transform.location.x + vec.x * 4
+        # transform.location.y = transform.location.y + vec.y * 4
+        # transform.location.z = transform.location.z + vec.z * 4 
+        # self.world.debug.draw_point(transform.location, size=1., life_time=120., color=carla.Color(r=255, g=0, b=0))
+        # self.world.debug.draw_point(
+        #     transform.location, 0.1,
+        #     carla.Color(0, 0, 255),
+        #     60.0, False) 
+
+        self.world.debug.draw_string(vehicle_loc, str("Hallo"), draw_shadow=False, life_time=-1)
+
+        for w in waypoints:
+            # self.world.debug.draw_string(w.transform.location, 'O', draw_shadow=False,
+            #                                 color=carla.Color(r=255, g=0, b=0), life_time=-1,
+            #                                 persistent_lines=True)
+            # print(w.transform.location)
+            self.world.debug.draw_point(w.transform.location, size=0.05, life_time=-1., color=carla.Color(r=255, g=0, b=0))
+
+        wp = self.map.get_waypoint(vehicle_loc, project_to_road=True,
+                lane_type=carla.LaneType.Driving)
+        
+        self.world.debug.draw_point(wp.transform.location, size=0.05, life_time=-1., color=carla.Color(r=0, g=0, b=255))
+
+
 
     def destroy_actor(self, actor):
         actor.destroy()
@@ -242,10 +284,9 @@ class Environment:
             return True
         return False
     
-    def isEnvAlive(self):
-        if len(self.actor_list) == 0:
-            return False
-        return True
+    def setAutoPilot(self, value):
+        self.autoPilotOn = value
+        print(f"### Autopilot: {self.autoPilotOn}")
         
     #get vehicle location and rotation (0-360 degrees)
     def get_Vehicle_transform(self):
@@ -269,29 +310,23 @@ class Environment:
         # return frame, seg
         return frame,None
 
-    def __process_sensor_data(self, image, weak_self):
+    def __process_sensor_data(self, image):
         """ Observations directly viewable with OpenCV in CHW format """
         # image.convert(carla.ColorConverter.CityScapesPalette)
-        self = weak_self()
-        if not self: return
         i = np.array(image.raw_data)
         i2 = i.reshape((self.s_height, self.s_width, 4))
         i3 = i2[:, :, :3]
         self.observation = i3
 
-    def __process_sensor_data_Seg(self, image, weak_self):
+    def __process_sensor_data_Seg(self, image):
         """ Observations directly viewable with OpenCV in CHW format """
         # image.convert(carla.ColorConverter.CityScapesPalette)
-        self = weak_self()
-        if not self: return
         i = np.array(image.raw_data)
         i2 = i.reshape((self.s_height, self.s_width, 4))
         i3 = i2[:, :, :3]
         self.observation_seg = i3
 
-    def __process_collision_data(self, event, weak_self):
-        self = weak_self()
-        if not self: return
+    def __process_collision_data(self, event):
         self.collision_hist.append(event)
 
     # changes order of color channels. Silly but works...
@@ -308,26 +343,13 @@ class Environment:
     def exit_env(self):
         self.deleteEnv()
     
-    def deleteEnv(self):
-        # for actor in self.actor_list:
-        #     # print(actor.type_id )
-        #     # print(actor.type_id  == "vehicle.tesla.model3")
-        #     if self.isActorAlive(actor) and not actor.type_id == "vehicle.tesla.model3":
-        #         actor.stop()
-        # for actor in self.actor_list:
-        #     # if self.isActorAlive(actor):
-        #     # if not actor.type_id == "vehicle.tesla.model3":
-        #     actor.destroy()
-        
-        # for actor in self.actor_list:
-        # #     # if self.isActorAlive(actor):
-        # #     # if actor.type_id == "vehicle.tesla.model3":
-        #     actor.destroy()
-        # time.sleep(5)
+    def deleteActors(self):
 
-        # while not len(self.actor_list) == 0:
-        #     actor = self.actor_list.pop(0)
-        #     actor.destroy()
-        self.client.apply_batch([carla.command.DestroyActor(x) for x in self.actor_list])
-        # time.sleep(5)
+        if not self.vehicle == None:
+            self.vehicle.set_autopilot(False)
+        for actor in self.actor_list:
+            actor.destroy()       
+        # self.client.apply_batch([carla.command.DestroyActor(x) for x in self.actor_list])
 
+    def __del__(self):
+        print("__del__ called")

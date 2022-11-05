@@ -94,17 +94,18 @@ def main(withAE=False):
         n_frame = 1
 
         env.reset()
-        env.spawn_anomaly()
+        # env.spawn_anomaly()
 
         obs_current = env.get_observation()
         obs_current = obs_current[0] #no segemntation
         # if withAE:
         #     # heatmap = evaluater.getHeatMap(obs_current)
-        #     detectionMap = evaluater.getColoredDetectionMap(obs_current)
+        detectionMap = evaluater.getDetectionMap(obs_current)
+        detectionMap = np.transpose(detectionMap, (2,1,0))
         #     obs_current = np.hstack((obs_current, detectionMap))
         
         obs_current = np.transpose(obs_current, (2,1,0))
-        obs_current = np.array([obs_current])
+        obs_current = np.array([obs_current, detectionMap])
 #         print(obs_current.shape)
         obs_current = torch.as_tensor(obs_current)
 
@@ -263,6 +264,8 @@ def save_video(chw_list, reward_best, step, writer, evaluater, withVAE):
             aug_img = torch.as_tensor(np.array([aug_img]))
             aug_list.append(aug_img)
         tchw_list = aug_list
+    else:
+        tchw_list = chw_list
 
     tchw_list = torch.stack(tchw_list)  # Adds "list" like entry --> TCHW
     tchw_list = torch.squeeze(tchw_list)
@@ -273,39 +276,39 @@ def save_video(chw_list, reward_best, step, writer, evaluater, withVAE):
     )  # Unsqueeze adds batch --> BTCHW
 
 def color_pixel(img):
-    img[EGO_X+1, EGO_Y+1, 0] = 0.
+    img[EGO_X+1, EGO_Y+1, 0] = 1.
     img[EGO_X+1, EGO_Y+1, 1] = 0.
     img[EGO_X+1, EGO_Y+1, 2] = 1.
 
-    img[EGO_X+1, EGO_Y, 0] = 0.
+    img[EGO_X+1, EGO_Y, 0] = 1.
     img[EGO_X+1, EGO_Y, 1] = 0.
     img[EGO_X+1, EGO_Y, 2] = 1.
 
-    img[EGO_X, EGO_Y+1, 0] = 0.
+    img[EGO_X, EGO_Y+1, 0] = 1.
     img[EGO_X, EGO_Y+1, 1] = 0.
     img[EGO_X, EGO_Y+1, 2] = 1.
 
-    img[EGO_X-1, EGO_Y-1, 0] = 0.
+    img[EGO_X-1, EGO_Y-1, 0] = 1.
     img[EGO_X-1, EGO_Y-1, 1] = 0.
     img[EGO_X-1, EGO_Y-1, 2] = 1.
 
-    img[EGO_X-1, EGO_Y, 0] = 0.
+    img[EGO_X-1, EGO_Y, 0] = 1.
     img[EGO_X-1, EGO_Y, 1] = 0.
     img[EGO_X-1, EGO_Y, 2] = 1.
 
-    img[EGO_X, EGO_Y-1, 0] = 0.
+    img[EGO_X, EGO_Y-1, 0] = 1.
     img[EGO_X, EGO_Y-1, 1] = 0.
     img[EGO_X, EGO_Y-1, 2] = 1.
 
-    img[EGO_X+1, EGO_Y-1, 0] = 0.
+    img[EGO_X+1, EGO_Y-1, 0] = 1.
     img[EGO_X+1, EGO_Y-1, 1] = 0.
     img[EGO_X+1, EGO_Y-1, 2] = 1.
 
-    img[EGO_X-1, EGO_Y+1, 0] = 0.
+    img[EGO_X-1, EGO_Y+1, 0] = 1.
     img[EGO_X-1, EGO_Y+1, 1] = 0.
     img[EGO_X-1, EGO_Y+1, 2] = 1.
 
-    img[EGO_X, EGO_Y, 0] = 0.
+    img[EGO_X, EGO_Y, 0] = 1.
     img[EGO_X, EGO_Y, 1] = 0.
     img[EGO_X, EGO_Y, 2] = 1.
 
@@ -313,7 +316,7 @@ def color_pixel(img):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--AE", type=bool, default=True) # turn on Autoencoder
+    parser.add_argument("--AE", type=str, default="True") # turn on Autoencoder
 
     args = parser.parse_args()
     withAE = args.AE
