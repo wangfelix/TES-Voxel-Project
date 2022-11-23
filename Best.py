@@ -15,7 +15,8 @@ import os
 from torch import optim
 import time
 import torch.nn.functional as  F
-
+import sys
+sys.path.insert(0, 'py_scripts/') 
 from clearml import Dataset
 
 from Image_Sampler import Sampler
@@ -30,14 +31,14 @@ MODEL_NAME = "clearML"
 PATH = "models/" + MODEL_NAME
 # IMG_TRAIN = "/disk/vanishing_data/is789/anomaly_samples/train_set/"
 # IMG_TEST = "/disk/vanishing_data/is789/anomaly_samples/40test/"
-TRAIN_ID = "8c91741059884c55b8f2dfa44a07f005"
+TRAIN_ID = "538aa1c84b4549309743a3271dfbd9e0"
 # TRAIN_ID = "834165cf80dd430b9374de0c3414c23a" #Simon train cityscape train: cb2f41e2945247ccb906b19aab083875
 TEST_ID = "cd75e39b0aa641fc9b7e6d6c76656627"
 # TRAIN_ID = "8ce5cdd31e8e499db2e07fc70b6136d5"
 
 
 ### ClearML section
-task = Task.init(project_name="bogdoll/Anomaly_detection_Moritz", task_name="BEV_Old", output_uri="https://tks-zx-01.fzi.de:8081")
+task = Task.init(project_name="bogdoll/Anomaly_detection_Moritz", task_name="AE_Updated", output_uri="https://tks-zx-01.fzi.de:8081")
 task.set_base_docker(
             "nvcr.io/nvidia/pytorch:21.10-py3",
             docker_setup_bash_script="apt-get update && apt-get install -y python3-opencv",

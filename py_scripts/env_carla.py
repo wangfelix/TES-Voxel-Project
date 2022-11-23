@@ -64,6 +64,8 @@ class Environment:
         self.bp_lib = self.world.get_blueprint_library()
         self.map = self.world.get_map()
         self.spawn_points = self.map.get_spawn_points()
+        self.map_waypoints = self.map.generate_waypoints(3.0)
+
         self.s_width = s_width
         self.s_height = s_height
         self.cam_height = cam_height
@@ -89,7 +91,7 @@ class Environment:
     def init_ego(self):
         self.vehicle_bp = self.bp_lib.find('vehicle.tesla.model3')
         self.ss_camera_bp = self.bp_lib.find('sensor.camera.rgb')
-        self.ss_camera_bp_sg = self.bp_lib.find('sensor.camera.semantic_segmentation')
+        # self.ss_camera_bp_sg = self.bp_lib.find('sensor.camera.semantic_segmentation')
         self.col_sensor_bp = self.bp_lib.find('sensor.other.collision')
 
         # Configure rgb sensors
@@ -103,9 +105,9 @@ class Environment:
         self.ss_cam_transform = carla.Transform(self.ss_cam_location, self.ss_cam_rotation)
 
         # # Configure segmantic sensors
-        self.ss_camera_bp_sg.set_attribute('image_size_x', f'{self.s_width}')
-        self.ss_camera_bp_sg.set_attribute('image_size_y', f'{self.s_height}')
-        self.ss_camera_bp_sg.set_attribute('fov', str(self.cam_zoom))
+        # self.ss_camera_bp_sg.set_attribute('image_size_x', f'{self.s_width}')
+        # self.ss_camera_bp_sg.set_attribute('image_size_y', f'{self.s_height}')
+        # self.ss_camera_bp_sg.set_attribute('fov', str(self.cam_zoom))
         
         # collision sensor
         self.col_sensor_location = carla.Location(0,0,0)
@@ -118,8 +120,6 @@ class Environment:
 
     def reset(self):
 
-        # if not self.vehicle == None:
-        #     self.vehicle.set_autopilot(self.autoPilotOn)
         self.deleteActors()
         
         self.actor_list = []
@@ -128,6 +128,7 @@ class Environment:
         # Spawn vehicle
         if self.random_spawn: transform = random.choice(self.spawn_points)
         else: transform = self.spawn_points[1]
+
         self.vehicle = self.world.spawn_actor(self.vehicle_bp, transform)
         self.vehicle.set_autopilot(self.autoPilotOn)
         self.actor_list.append(self.vehicle)
@@ -137,10 +138,10 @@ class Environment:
         self.actor_list.append(self.ss_cam)
         self.ss_cam.listen(lambda data: self.__process_sensor_data(data))
 
-        # Attach and listen to image sensor (Semantic Seg)
-        self.ss_cam_seg = self.world.spawn_actor(self.ss_camera_bp_sg, self.ss_cam_transform, attach_to=self.vehicle, attachment_type=carla.AttachmentType.Rigid)
-        self.actor_list.append(self.ss_cam_seg)
-        self.ss_cam_seg.listen(lambda data: self.__process_sensor_data_Seg(data))
+        # # Attach and listen to image sensor (Semantic Seg)
+        # self.ss_cam_seg = self.world.spawn_actor(self.ss_camera_bp_sg, self.ss_cam_transform, attach_to=self.vehicle, attachment_type=carla.AttachmentType.Rigid)
+        # self.actor_list.append(self.ss_cam_seg)
+        # self.ss_cam_seg.listen(lambda data: self.__process_sensor_data_Seg(data))
 
         time.sleep(RESET_SLEEP_TIME)   # sleep to get things started and to not detect a collision when the car spawns/falls from sky.
 
@@ -192,16 +193,35 @@ class Environment:
         return self.get_observation(), reward, done, None
 
     
-    def spawn_anomaly(self, distance=15):
+    def spawn_anomaly_ahead(self, distance=15):
         transform = self.get_Vehicle_transform() #get vehicle location and rotation (0-360 degrees)
-        ped_blueprints = self.bp_lib.filter("static.prop.clothcontainer")
         vec = transform.rotation.get_forward_vector()
         transform.location.x = transform.location.x + vec.x * distance
         transform.location.y = transform.location.y + vec.y * distance
-        transform.location.z = transform.location.z + vec.z * distance 
+        transform.location.z = transform.location.z + vec.z * distance
+        self.spawn_anomaly(transform)
+
+
+    def spawn_anomaly_alongRoad(self, max_numb):
+        if max_numb < 4: max_numb = 4
+        ego_map_point = self.getEgoWaypoint() # closest map point to the spawn point
+        wp_infront = [ego_map_point]
+        for x in range(max_numb):
+            wp_infront.append(wp_infront[-1].next(2.)[0])
+        
+        anomaly_spawn = random.choice(wp_infront[3:]) # prevent spawning object on top of ego_vehicle
+        location = anomaly_spawn.transform.location
+        rotation = anomaly_spawn.transform.rotation
+        self.spawn_anomaly(carla.Transform(location, rotation))
+
+
+
+    def spawn_anomaly(self, transform):
+        ped_blueprints = self.bp_lib.filter('static.prop.*')
         player = self.world.try_spawn_actor(random.choice(ped_blueprints),transform)
+        # player = self.world.try_spawn_actor(random.choice(self.bp_lib.filter('static.prop.clothcontainer')),transform)
         self.actor_list.append(player)
-        return player #for destruction
+
 
     def change_Weather(self):
         weather = carla.WeatherParameters(
@@ -237,13 +257,15 @@ class Environment:
         elif v <= 1.0:
             self.step(2)
 
-    def getRelevantWaypoints(self):
-        waypoints = self.map.generate_waypoints(2.0)
+    def getEgoWaypoint(self):
         vehicle_loc = self.vehicle.get_location()
         wp = self.map.get_waypoint(vehicle_loc, project_to_road=True,
                       lane_type=carla.LaneType.Driving)
 
-        return waypoints, wp
+        return wp
+    
+    def getWaypoints(self):
+        return self.map_waypoints
     
     def plotWaypoints(self):
         waypoints = self.map.generate_waypoints(3.0)
@@ -274,7 +296,13 @@ class Environment:
         
         self.world.debug.draw_point(wp.transform.location, size=0.05, life_time=-1., color=carla.Color(r=0, g=0, b=255))
 
-
+    #Returns only the waypoints in one lane
+    def single_lane(self, waypoint_list, lane):
+        waypoints = []
+        for i in range(len(waypoint_list) - 1):
+            if waypoint_list[i].lane_id == lane:
+                waypoints.append(waypoint_list[i])
+        return waypoints
 
     def destroy_actor(self, actor):
         actor.destroy()
@@ -318,13 +346,13 @@ class Environment:
         i3 = i2[:, :, :3]
         self.observation = i3
 
-    def __process_sensor_data_Seg(self, image):
-        """ Observations directly viewable with OpenCV in CHW format """
-        # image.convert(carla.ColorConverter.CityScapesPalette)
-        i = np.array(image.raw_data)
-        i2 = i.reshape((self.s_height, self.s_width, 4))
-        i3 = i2[:, :, :3]
-        self.observation_seg = i3
+    # def __process_sensor_data_Seg(self, image):
+    #     """ Observations directly viewable with OpenCV in CHW format """
+    #     # image.convert(carla.ColorConverter.CityScapesPalette)
+    #     i = np.array(image.raw_data)
+    #     i2 = i.reshape((self.s_height, self.s_width, 4))
+    #     i3 = i2[:, :, :3]
+    #     self.observation_seg = i3
 
     def __process_collision_data(self, event):
         self.collision_hist.append(event)
@@ -344,9 +372,9 @@ class Environment:
         self.deleteEnv()
     
     def deleteActors(self):
-
         if not self.vehicle == None:
             self.vehicle.set_autopilot(False)
+
         for actor in self.actor_list:
             actor.destroy()       
         # self.client.apply_batch([carla.command.DestroyActor(x) for x in self.actor_list])

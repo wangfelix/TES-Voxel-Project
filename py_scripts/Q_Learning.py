@@ -19,32 +19,6 @@ from torch.utils.tensorboard import SummaryWriter
 
 from clearml import Task
 
-task = Task.init(project_name="bogdoll/Anomaly_detection_Moritz", task_name="QAgent_Reward", output_uri="s3://tks-zx.fzi.de:9000/clearml")
-task.set_base_docker(
-            "nvcr.io/nvidia/pytorch:21.10-py3",
-            docker_setup_bash_script="apt-get update && apt-get install -y python3-opencv",
-            docker_arguments="-e NVIDIA_DRIVER_CAPABILITIES=all"  # --ipc=host",   
-            )
-# Remote Execution on FZI XZ
-# task.set_base_docker(
-#             "tks-zx-01.fzi.de/autonomous-agents/core-carla:21.10",
-#             docker_setup_bash_script="apt-get update && apt-get install -y python3-opencv",
-#             docker_arguments="-e NVIDIA_DRIVER_CAPABILITIES=all",  # --ipc=host",
-#         )
-# # PyTorch fix for version 1.10, see https://github.com/pytorch/pytorch/pull/69904
-# task.add_requirements(
-#     package_name="setuptools",
-#     package_version="59.5.0",
-# )
-# task.add_requirements(
-#     package_name="moviepy",
-#     package_version="1.0.3",
-# )
-# task.execute_remotely('rtx3090', clone=False, exit_process=True) 
-
-
-# http://tks-zx-01.fzi.de:8080/workers-and-queues/queues
-
 from AE_model import AutoEncoder
 from model_eval import Evaluater
 
@@ -69,17 +43,20 @@ IM_WIDTH = 256
 EGO_X = 246
 EGO_Y = 128
 
-def main(withAE=False):
+def main(withAE, concatAE):
+    init_clearML(withAE, concatAE)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if device == "cpu": print("!!! device is CPU !!!")
-    ae_model = AutoEncoder()
-    evaluater = Evaluater(ae_model, device, PATH)
+
+    if withAE:
+        ae_model = AutoEncoder()
+        evaluater = Evaluater(ae_model, device, PATH)
     DISTANCE_MATRIX = init_distance_matrices(EGO_X,EGO_Y)
     print(DISTANCE_MATRIX)
 
     writer = SummaryWriter()
 #     env = Environment(host="tks-fly.fzi.de", port=2000)
-    env = Environment(host="localhost", port=2000, s_width=256, s_height=256, cam_height=4.5, cam_rotation=-90, cam_zoom=130, random_spawn=False)
+    env = Environment(world="Town01_Opt", host="localhost", port=2000, s_width=256, s_height=256, cam_height=4.5, cam_rotation=-90, cam_zoom=130, random_spawn=False)
     env.init_ego()
 
     trainer = Training(writer, device, withAE=withAE)
@@ -94,19 +71,20 @@ def main(withAE=False):
         n_frame = 1
 
         env.reset()
-        # env.spawn_anomaly()
+        env.spawn_anomaly_alongRoad(max_numb=30)
 
         obs_current = env.get_observation()
         obs_current = obs_current[0] #no segemntation
-        # if withAE:
-        #     # heatmap = evaluater.getHeatMap(obs_current)
-        detectionMap = evaluater.getDetectionMap(obs_current)
-        detectionMap = np.transpose(detectionMap, (2,1,0))
-        #     obs_current = np.hstack((obs_current, detectionMap))
+
+        if concatAE:
+            coloredDetectionMap = evaluater.getColoredDetectionMap(obs_current)
+            coloredDetectionMap = np.transpose(coloredDetectionMap, (2,1,0))
+
         
         obs_current = np.transpose(obs_current, (2,1,0))
-        obs_current = np.array([obs_current, detectionMap])
-#         print(obs_current.shape)
+        if concatAE: obs_current = np.array([obs_current, coloredDetectionMap])
+        obs_current = np.array([obs_current])
+        # print(obs_current.shape)
         obs_current = torch.as_tensor(obs_current)
 
         chw_list = []
@@ -128,9 +106,13 @@ def main(withAE=False):
             obs_next, reward, done, _ = env.step(action)
             obs_next = obs_next[0] #no segemntation
 
-            if withAE:
-                detectionMap = evaluater.getDetectionMap(obs_next)
-                reward = calcualte_enriched_reward(reward, detectionMap, DISTANCE_MATRIX)
+            if concatAE:
+                coloredDetectionMap = evaluater.getColoredDetectionMap(obs_next)
+                coloredDetectionMap = np.transpose(coloredDetectionMap, (2,1,0))
+
+            # if withAE:
+            #     detectionMap = evaluater.getDetectionMap(obs_next)
+            #     reward = calcualte_enriched_reward(reward, detectionMap, DISTANCE_MATRIX)
                 # print(reward)
                 
 
@@ -151,6 +133,7 @@ def main(withAE=False):
                 #     obs_next = np.hstack((obs_next, detectionMap))
 
                 obs_next = np.transpose(obs_next, (2,1,0))
+                if concatAE: obs_next = np.array([obs_next, coloredDetectionMap])
                 obs_next = np.array([obs_next])
                 obs_next = torch.as_tensor(obs_next)
             
@@ -171,7 +154,8 @@ def main(withAE=False):
 
                 if reward_per_episode > reward_best:
                     reward_best = reward_per_episode
-                    save_video(chw_list, reward_best, i, writer, evaluater, withAE)
+                    name = "DQN Champ: "
+                    save_video(chw_list, reward_best, i, writer, evaluater, withAE, concatAE, name)
                     # tchw_list = torch.stack(chw_list)  # Adds "list" like entry --> TCHW
                     # tchw_list = torch.squeeze(tchw_list)
                     # name = "DQN Champ: " + str(reward_per_episode)
@@ -185,11 +169,8 @@ def main(withAE=False):
 
         # Save video of episode to ClearML https://github.com/pytorch/pytorch/issues/33226
         if i % VIDEO_EVERY == 0:
-            tchw_list = torch.stack(chw_list)  # Adds "list" like entry --> TCHW
-            tchw_list = torch.squeeze(tchw_list)
-            writer.add_video(
-                tag="DQN Agent", vid_tensor=tchw_list.unsqueeze(0), global_step=i
-            )  # Unsqueeze adds batch --> BTCHW
+            name = "DQN Agent: "
+            save_video(chw_list, reward_best, i, writer, evaluater, withAE, concatAE, name)
 
         # Update the target network, copying all weights and biases in DQN
         if i % TARGET_UPDATE == 0:
@@ -248,9 +229,21 @@ def add_ring(matrix, value):
     return b
 
 
-def save_video(chw_list, reward_best, step, writer, evaluater, withVAE):
-    if withVAE:
-        aug_list = []
+def save_video(chw_list, reward_best, step, writer, evaluater, withVAE, concatAE, name):
+    aug_list = []
+
+    if concatAE:
+        for stacked_img in chw_list:
+            stacked_img = torch.squeeze(stacked_img)
+            stacked_img = torch.tensor_split(stacked_img, 2, dim=0)
+            observation = torch.squeeze(stacked_img[0])
+            detectionMap = torch.squeeze(stacked_img[1]) # shape 3,w,h
+            seperator = torch.zeros((3,2,256))
+            seperator[0,:,1] = 1.
+            aug_img = torch.hstack((observation, seperator, detectionMap))
+            aug_list.append(aug_img)
+
+    elif withVAE:
         for img in chw_list:
             img = img.numpy()
             img = np.squeeze(img)
@@ -263,14 +256,15 @@ def save_video(chw_list, reward_best, step, writer, evaluater, withVAE):
             aug_img = np.transpose(aug_img, (2,1,0)) # shape: 3,w,h
             aug_img = torch.as_tensor(np.array([aug_img]))
             aug_list.append(aug_img)
-        tchw_list = aug_list
-    else:
-        tchw_list = chw_list
 
+    tchw_list = aug_list
+    if not withAE and not concatAE: tchw_list = chw_list # when running in normal (no AE) mode
+    
     tchw_list = torch.stack(tchw_list)  # Adds "list" like entry --> TCHW
     tchw_list = torch.squeeze(tchw_list)
     tchw_list = tchw_list.unsqueeze(0)
-    name = "DQN Champ: " + str(reward_best)
+    # print(tchw_list.size())
+    name = name + str(reward_best)
     writer.add_video(
         tag=name, vid_tensor=tchw_list, global_step=step
     )  # Unsqueeze adds batch --> BTCHW
@@ -314,15 +308,41 @@ def color_pixel(img):
 
     return img
 
+def init_clearML(withAE, concatAE):
+    name = "RL-"
+    if concatAE: name = name + "Obs+Anomaly"
+    elif withAE: name = name + "RichReward"
+    else: name = name + "Baseline"
+
+    task = Task.init(project_name="bogdoll/Anomaly_detection_Moritz", task_name=name, output_uri="s3://tks-zx.fzi.de:9000/clearml")
+    task.set_base_docker(
+            "nvcr.io/nvidia/pytorch:21.10-py3", 
+            docker_setup_bash_script="apt-get update && apt-get install -y python3-opencv",
+            docker_arguments="-e NVIDIA_DRIVER_CAPABILITIES=all"  # --ipc=host",   
+            )
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--AE", type=str, default="True") # turn on Autoencoder
+    parser.add_argument("--mode", type=str)
 
     args = parser.parse_args()
-    withAE = args.AE
-    if withAE == "True" or withAE == "true":
-        withAE = True
-    elif withAE == "False" or withAE == "false":
-        withAE = False
+    mode = args.mode
 
-    main(withAE)
+    if mode == "0":
+        withAE = False
+        concatAE = False
+        print(f"### Mode: Baseline RL Agent!")
+    elif mode == "1":
+        withAE = True
+        concatAE = False
+        print(f"### Mode: Enriched Reward RL Agent")
+    elif mode == "2":
+        withAE = True
+        concatAE = True
+        print(f"### Mode: Observation + Anomaly RL Agent!")
+    
+    else:
+        print("!!! Wrong mode flag. (0 = Baseline | 1 = Enriched Reward | 2 = Observation + Anomaly)")
+
+
+    main(withAE, concatAE)

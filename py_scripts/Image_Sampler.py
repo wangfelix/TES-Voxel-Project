@@ -28,8 +28,8 @@ CAM_HEIGHT = 20
 ROTATION = -90
 ZOOM = 110
 ROOT_STORAGE_PATH = "/disk/vanishing_data/is789/anomaly_samples/"
-MAP_SET = ["Town01_Opt", "Town02_Opt", "Town03_Opt", "Town04_Opt","Town05_Opt"]
-# MAP_SET = ["Town01_Opt"]
+# MAP_SET = ["Town01_Opt", "Town02_Opt", "Town03_Opt", "Town04_Opt","Town05_Opt"]
+MAP_SET = ["Town01_Opt"]
 
 DETECTION_THRESHOLD = 0.2
 
@@ -49,9 +49,11 @@ class Sampler:
         env = Environment(world=world_model, s_width=self.s_width, s_height=self.s_height, cam_height=self.cam_height, cam_rotation=self.cam_rotation, cam_zoom=self.cam_zoom, host=self.host, random_spawn=random_spawn)
         env.init_ego()
         image, segmentation = env.reset()
-        waypoints, wp = env.getRelevantWaypoints()
+        waypoints = env.getWaypoints()
+        wp = env.getRelevantWaypoints()
+        sl = env.single_lane(waypoints, wp.lane_id)
         env.deleteActors()
-        return waypoints, wp
+        return waypoints, wp, sl
 
     # turns carla segmentation into an image:
     # r-channel (first) represents the label
@@ -79,8 +81,12 @@ class Sampler:
         env.init_ego()
         # image, segmentation = env.reset()
         env.reset()
-        env.plotWaypoints()
-        time.sleep(10)
+        x = random.randrange(4,15)
+        # env.spawn_anomaly_ahead(distance=x)
+        # env.spawn_anomaly_alongRoad(max_numb=6)
+        # env.plotWaypoints()
+        # time.sleep(20)
+        time.sleep(3)
         image, segmentation = env.get_observation()
         env.deleteActors()
         return image, segmentation
@@ -99,7 +105,7 @@ class Sampler:
         anomalyObject = None
         for x in range(num_of_snaps):
             if anomaly and x == anomalySpawnDelay:
-                anomalyObject = env.spawn_anomaly(distance=20)
+                anomalyObject = env.spawn_anomaly_ahead(distance=20)
             if anomaly and not anomalyDespawnDelay == None and x == anomalySpawnDelay + anomalyDespawnDelay:
                 env.destroy_actor(anomalyObject)
 
@@ -476,4 +482,4 @@ if __name__ == "__main__":
     # sampler = Sampler(s_width=256, s_height=256, cam_height=4, cam_zoom=50, cam_rotation=-12) # best 
     sampler = Sampler(s_width=256, s_height=256, cam_height=4.5, cam_zoom=130, cam_rotation=-90)
     # sampler.collect_Samples(sample_size=10, tick_rate=5)
-    sampler.collect_huge_Samples(sample_size=40, tick_rate=3)
+    sampler.collect_huge_Samples(sample_size=40000, tick_rate=3)
