@@ -29,7 +29,7 @@ ROTATION = -90
 ZOOM = 110
 ROOT_STORAGE_PATH = "/disk/vanishing_data/is789/anomaly_samples/"
 # MAP_SET = ["Town01_Opt", "Town02_Opt", "Town03_Opt", "Town04_Opt","Town05_Opt"]
-MAP_SET = ["Town01_Opt"]
+MAP_SET = ["Town01_Opt", "Town01_Opt", "Town01_Opt", "Town01_Opt", "Town01_Opt", "Town01_Opt", "Town01_Opt", "Town01_Opt", "Town01_Opt","Town01_Opt","Town01_Opt"]
 
 DETECTION_THRESHOLD = 0.2
 
@@ -206,7 +206,8 @@ class Sampler:
                 save_index += 1
                 x = x + 1
             pre_position = np.array(position)
-            time.sleep(tick_rate)
+            rand_tick = random.random() * 3 + tick_rate
+            time.sleep(rand_tick)
         
         env.deleteActors()
         return save_index
@@ -448,7 +449,7 @@ class Sampler:
             img = cv2.imread(path)
             img_list.append(img)
         
-        img_list = np.array(img_list)
+        img_list = np.array(img_list).astype("float32")
         img_list = img_list[:,:,:,:3] # clear alpha channel
         print(f"Loaded {str(len(img_list))} images | width = {len(img_list[0])}, height = {len(img_list[0][0])}, channels = {len(img_list[0][0][0])}")
         return img_list
