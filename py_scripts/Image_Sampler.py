@@ -202,7 +202,7 @@ class Sampler:
             # are we waiting at a red light ? >> ignore snap
             if Sampler.euclid_dist(pre_position, position) > .5 :
                 image = (image * 255).astype("int")
-                cv2.imwrite(storagePath + f"snap_{save_index}.png", image) 
+                cv2.imwrite(storagePath + f"snap_{save_index + 29789}.png", image) 
                 save_index += 1
                 x = x + 1
             pre_position = np.array(position)
@@ -449,7 +449,7 @@ class Sampler:
             img = cv2.imread(path)
             img_list.append(img)
         
-        img_list = np.array(img_list).astype("float32")
+        img_list = np.array(img_list) # .astype("float32")
         img_list = img_list[:,:,:,:3] # clear alpha channel
         print(f"Loaded {str(len(img_list))} images | width = {len(img_list[0])}, height = {len(img_list[0][0])}, channels = {len(img_list[0][0][0])}")
         return img_list
