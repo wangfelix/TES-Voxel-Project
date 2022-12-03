@@ -17,45 +17,161 @@ sys.path.insert(0, 'py_scripts/')
 import torch
 from Image_Sampler import Sampler
 from env_carla import Environment
+from model_eval import Evaluater
+from AE_model import AutoEncoder
+
+
+# In[22]:
+
+
+images = Sampler.load_Images("/disk/vanishing_data/is789/anomaly_samples/paper_data_set/", size=20000).astype("float32") / 255
+# images = np.array([img, img, img, img])
+for x in range(len(images)):
+    img = images[x]
+    counter = 0
+    for y in range(len(images)):
+        if not x == y:
+            tmp = img - images[y]
+            if np.sum(tmp) == 0.:
+                counter += 1
+    print(f"Found: {counter}")
+
+
+# In[19]:
+
+
+np.sum(img - img)
 
 
 # # Sampling Section
 
-# In[2]:
+# In[5]:
 
 
 # sampler = Sampler(s_width=100, s_height=100, cam_height=4, cam_zoom=50, cam_rotation=-18)
 sampler = Sampler(s_width=256, s_height=256, cam_height=4, cam_zoom=130, cam_rotation=-90) #top-down
 
 
+# In[16]:
+
+
+img, _ = sampler.sample()
+plt.imshow(img)
+
+# img = (img * 255).astype("int")
+# cv2.imwrite("anomayl_samples/11.png",img) 
+
+
+# In[10]:
+
+
+gt, out = eval.predict(img)
+plt.imshow(out)
+
+
 # In[ ]:
 
 
-imgs,_ = sampler.sample_Ride(num_of_snaps=25, random_action_prob=0.5)
+test = cv2.imread("anomayl_samples/1.png")
+plt.imshow(test)
+
+
+# In[2]:
+
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+ae_model = AutoEncoder()
+path = "py_scripts/model.pt"
+eval = Evaluater(ae_model, device, path)
+
+
+# In[11]:
+
+
+images = Sampler.load_Images("/disk/vanishing_data/is789/anomaly_samples/paper_data_set/", size=10).astype("float32") / 255
 
 
 # In[ ]:
 
+
+for x in range(len(images)):
+    img = images[x]
+    counter = 0
+    for y in range(len(images)):
+        if not x == y:
+            tmp = img[x] - img[y]
+            if np.sum(tmp) == 0:
+                counter += 1
+    print(f"Found: {counter}")
+
+
+# In[12]:
+
+
+fig, axe = plt.subplots(len(images), 3, figsize=(12, len(images)*4), dpi=100)
+for x in range(len(images)):
+    img = images[x]
+    gt, out = eval.predict(img)
+    dt = eval.getColoredDetectionMap(img)
+    # gt = (gt).astype("uint8")
+    # out = (out).astype("uint8")
+    # dt = (dt).astype("uint8")
+
+
+    axe[x,0].imshow(gt)
+    axe[x,0].axis('off')
+    axe[x,1].imshow(out)
+    axe[x,1].axis('off')
+    axe[x,2].imshow(dt)
+    axe[x,2].axis('off')
+
+# plt.tight_layout()
+plt.show()
+# plt.axes("off")
+
+
+# In[ ]:
+
+
+sampler.show_Example()
+
+
+# In[ ]:
+
+
+x
+
+
+# In[ ]:
+
+
+imgs, _ = sampler.sample_Ride(num_of_snaps=41)
 
 for x in range(0,40):
     plt.imshow(imgs[x])
     plt.show()
 
 
-# In[2]:
+# In[ ]:
 
 
 # sampler = Sampler(s_width=256, s_height=256, cam_height=4, cam_zoom=50, cam_rotation=-12)
 sampler = Sampler(s_width=256, s_height=256, cam_height=4.5, cam_zoom=130, cam_rotation=-90)
 
 
-# In[33]:
+# In[ ]:
 
 
-waypoints, wp = sampler.get_waypoints()
+waypoints, wp, sl = sampler.get_waypoints()
 
 
-# In[39]:
+# In[ ]:
+
+
+wp.lane_id
+
+
+# In[ ]:
 
 
 pp = []
@@ -66,8 +182,56 @@ pp = np.array(pp)
 pp = pp.T
 
 
-# In[41]:
+# In[ ]:
 
+
+plt.figure(figsize=(10, 10), dpi=80)
+plt.plot(pp[0,:], pp[1,:], '.k', alpha=1, ms=0.5)
+plt.plot(wp.transform.location.x, wp.transform.location.y, '.r', alpha=1, ms=10.5)
+
+
+# In[ ]:
+
+
+front = [[wp]]
+root = wp
+for x in range(100):
+    front.append(front[-1][0].next(2.))
+
+
+# In[ ]:
+
+
+k = wp.next(20.)
+
+
+# In[ ]:
+
+
+k[0]
+
+
+# In[ ]:
+
+
+vehicle_location = wp.transform.location
+front = []
+for xx in sl:
+    waypoint_location = xx.transform.location
+    if (waypoint_location - vehicle_location).x > 0:
+        front.append(xx)
+
+
+# In[ ]:
+
+
+pp = []
+for x in range(len(front)):
+    xx = front[x][0]
+    p = [xx.transform.location.x, xx.transform.location.y]
+    pp.append(np.array(p))
+pp = np.array(pp)
+pp = pp.T
 
 plt.figure(figsize=(10, 10), dpi=80)
 plt.plot(pp[0,:], pp[1,:], '.k', alpha=1, ms=0.5)
@@ -80,7 +244,7 @@ plt.plot(wp.transform.location.x, wp.transform.location.y, '.r', alpha=1, ms=10.
 img, seg = sampler.sample()
 
 
-# In[6]:
+# In[ ]:
 
 
 sampler.show_Example(random_spawn=True, segmentation=False)
@@ -130,7 +294,7 @@ plt.imshow(mask)
 mask[0]
 
 
-# In[4]:
+# In[ ]:
 
 
 images, seg = sampler.sample_Ride(world_model="Town01_Opt", num_of_snaps=10, tick_rate=1, anomaly=True)
@@ -144,13 +308,13 @@ for img in images:
     plt.show()
 
 
-# In[11]:
+# In[ ]:
 
 
 seg[9][250][250]
 
 
-# In[10]:
+# In[ ]:
 
 
 plt.imshow(images[9])
@@ -158,10 +322,10 @@ plt.imshow(images[9])
 
 # # Loading Section
 
-# In[3]:
+# In[4]:
 
 
-images = Sampler.load_Images("/disk/vanishing_data/is789/anomaly_samples/Samples_2022-09-02_11:06:21/", size=40)
+images = Sampler.load_Images("/disk/vanishing_data/is789/anomaly_samples/paper_data_set/", size=40)
 
 
 # In[ ]:
@@ -176,16 +340,16 @@ images = images[:,:,:,:3]
 images[0].shape
 
 
-# In[6]:
+# In[ ]:
 
 
-paths = Sampler.get_image_paths("/disk/vanishing_data/is789/anomaly_samples/Samples_2022-08-31_18:12:29/")
+paths = Sampler.get_image_paths("/disk/vanishing_data/is789/anomaly_samples/Samples_2022-11-03_20:07:27/")
 
 
-# In[4]:
+# In[5]:
 
 
-for x in range(0,19):
+for x in range(0,30):
     plt.imshow(images[x])
     plt.show()
 
@@ -196,13 +360,13 @@ for x in range(0,19):
 Sampler.sample_from_Set(images)
 
 
-# In[22]:
+# In[ ]:
 
 
 plt.imshow(images[4])
 
 
-# In[6]:
+# In[ ]:
 
 
 def process_image(image):
@@ -211,7 +375,7 @@ def process_image(image):
     return image
 
 
-# In[7]:
+# In[ ]:
 
 
 xx = process_image(images[0])
@@ -664,13 +828,13 @@ data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
 data.shape
 
 
-# In[7]:
+# In[ ]:
 
 
 k = np.zeros((3,2,2)).astype("float32")
 
 
-# In[8]:
+# In[ ]:
 
 
 k[0][k[0] == 0] = 1
@@ -678,19 +842,19 @@ k[1][k[1] == 0] = 2
 k[2][k[2] == 0] = 3
 
 
-# In[11]:
+# In[ ]:
 
 
 k = np.zeros((512,512,3))
 
 
-# In[12]:
+# In[ ]:
 
 
 k = np.transpose(k, (2,1,0))
 
 
-# In[14]:
+# In[ ]:
 
 
 k = np.array([1,2,3])
@@ -699,7 +863,7 @@ k = np.array([1,1,1])
 print(z)
 
 
-# In[3]:
+# In[ ]:
 
 
 def get_median_set(values):
@@ -716,16 +880,66 @@ def get_median_set(values):
     return median, np.array(lowerSplit), np.array(upperSplit)
 
 
-# In[5]:
+# In[ ]:
 
 
 x = np.array([1,2,3,4,5,6,7,8,9])
 a, b, c = get_median_set(x)
 
 
-# In[4]:
+# In[ ]:
 
 
 c = np.array([0,1])
 len(c)
+
+
+# In[ ]:
+
+
+k = torch.zeros(3, 5,5)
+k1 = torch.zeros(3, 2,5)
+o = torch.hstack((k,k1),)
+o.size()
+
+
+# In[ ]:
+
+
+x = torch.randn(1,5)
+
+x = torch.cat((x, x), 1)
+x.shape
+
+
+# In[ ]:
+
+
+x = torch.randn(32,2, 3)
+x = x.view((32,2*3))
+x.shape
+
+
+# In[ ]:
+
+
+x = torch.randn(1, 2, 3, 256, 256)
+x.size()
+
+
+# In[ ]:
+
+
+x = torch.randn(1, 2, 3, 256, 256)
+a = torch.tensor_split(x, 2, dim=1)
+a0 = torch.squeeze(a[0], 1)
+a1 = torch.squeeze(a[1], 1)
+a1.size()
+
+
+# In[ ]:
+
+
+k = [1,2,3,4]
+k[2:]
 
