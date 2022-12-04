@@ -43,6 +43,8 @@ IM_WIDTH = 256
 EGO_X = 246
 EGO_Y = 128
 
+evaluater = None
+
 def main(withAE, concatAE):
     init_clearML(withAE, concatAE)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -51,8 +53,10 @@ def main(withAE, concatAE):
     if withAE:
         ae_model = AutoEncoder()
         evaluater = Evaluater(ae_model, device, PATH)
-    DISTANCE_MATRIX = init_distance_matrices(EGO_X,EGO_Y)
-    print(DISTANCE_MATRIX)
+
+    if withAE and not concatAE:
+        DISTANCE_MATRIX = init_distance_matrices(EGO_X,EGO_Y)
+        print(DISTANCE_MATRIX)
 
     writer = SummaryWriter()
 #     env = Environment(host="tks-fly.fzi.de", port=2000)
@@ -158,7 +162,7 @@ def main(withAE, concatAE):
                 if reward_per_episode > reward_best:
                     reward_best = reward_per_episode
                     name = "DQN Champ: "
-                    save_video(chw_list, reward_best, i, writer, evaluater, withAE, concatAE, name)
+                    save_video(chw_list, reward_best, i, writer, withAE, concatAE, name)
                     # tchw_list = torch.stack(chw_list)  # Adds "list" like entry --> TCHW
                     # tchw_list = torch.squeeze(tchw_list)
                     # name = "DQN Champ: " + str(reward_per_episode)
@@ -173,7 +177,7 @@ def main(withAE, concatAE):
         # Save video of episode to ClearML https://github.com/pytorch/pytorch/issues/33226
         if i % VIDEO_EVERY == 0:
             name = "DQN Agent: "
-            save_video(chw_list, reward_best, i, writer, evaluater, withAE, concatAE, name)
+            save_video(chw_list, reward_best, i, writer, withAE, concatAE, name)
 
         # Update the target network, copying all weights and biases in DQN
         if i % TARGET_UPDATE == 0:
@@ -232,7 +236,7 @@ def add_ring(matrix, value):
     return b
 
 
-def save_video(chw_list, reward_best, step, writer, evaluater, withVAE, concatAE, name):
+def save_video(chw_list, reward_best, step, writer, withVAE, concatAE, name):
     aug_list = []
 
     if concatAE:
@@ -334,15 +338,15 @@ if __name__ == "__main__":
     if mode == "0":
         withAE = False
         concatAE = False
-        print(f"### Mode: Baseline RL Agent!")
+        print(f"~~~~~~~~~~~~~~\n### Mode: Baseline RL Agent! \n~~~~~~~~~~~~~~")
     elif mode == "1":
         withAE = True
         concatAE = False
-        print(f"### Mode: Enriched Reward RL Agent")
+        print(f"~~~~~~~~~~~~~~\n### Mode: Enriched Reward RL Agent \n~~~~~~~~~~~~~~")
     elif mode == "2":
         withAE = True
         concatAE = True
-        print(f"### Mode: Observation + Anomaly RL Agent!")
+        print(f"~~~~~~~~~~~~~~\n### Mode: Observation + Anomaly RL Agent! \n~~~~~~~~~~~~~~")
     
     else:
         print("!!! Wrong mode flag. (0 = Baseline | 1 = Enriched Reward | 2 = Observation + Anomaly)")
