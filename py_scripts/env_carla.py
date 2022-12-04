@@ -186,7 +186,7 @@ class Environment:
             done = True
             reward = -1
         elif v_kmh < 20:
-            reward = -1
+            reward = v_kmh / (80 - 3*v_kmh)
         else:
             reward = 1
 

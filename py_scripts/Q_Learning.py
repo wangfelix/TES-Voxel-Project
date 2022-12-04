@@ -68,6 +68,10 @@ def main(withAE, concatAE):
     epsilon = EPS_START
     reward_best = -1000
     reward_per_episode_list = []
+    duration_per_episode_list = []
+    travel_dist_list = []
+    spawn_point = None
+    end_point = None
 
     for i in range(N_EPISODES):
 
@@ -76,7 +80,8 @@ def main(withAE, concatAE):
         n_frame = 1
 
         env.reset()
-        env.spawn_anomaly_alongRoad(max_numb=30)
+        env.spawn_anomaly_alongRoad(max_numb=20)
+        spawn_point = env.get_Vehicle_positionVec
 
         obs_current = env.get_observation()
         obs_current = obs_current[0] #no segemntation
@@ -131,6 +136,7 @@ def main(withAE, concatAE):
 
             if done:
                 reward_per_episode_list.append(reward_per_episode)
+                end_point = env.get_Vehicle_positionVec()
                 obs_next = None
             else:
                 # if withAE:
@@ -154,8 +160,13 @@ def main(withAE, concatAE):
             if done:
                 end = time.time()
                 duration = end - start
+                duration_per_episode_list.append(duration)
+                travel_dist = np.linalg.norm(spawn_point - end_point)
+                travel_dist_list.append(travel_dist)
                 writer.add_scalar("Reward per episode", reward_per_episode, i)
-                writer.add_scalar("Average reward of all episodes", np.average(reward_per_episode_list), i)
+                writer.add_scalar("Average reward of all episodes/avg reward", np.average(reward_per_episode_list), i)
+                writer.add_scalar("Average travel distance of all episodes/avg distance", np.average(travel_dist_list), i)
+                writer.add_scalar("Average duration before crash of all episodes/avg duration", np.average(duration_per_episode_list), i)
                 writer.add_scalar("Duration before crash/seconds", duration, i)
                 writer.add_scalar("Frames before crash/frames", n_frame, i)
 
