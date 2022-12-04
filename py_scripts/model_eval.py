@@ -17,6 +17,8 @@ from matplotlib.pyplot import figure
 from Image_Sampler import Sampler
 import cv2
 
+
+from sklearn.cluster import KMeans
 import torch
 
 
@@ -91,11 +93,64 @@ class Evaluater:
 
         baseline = 0.5 # best for a MAE 0.5
 
+        # from sklearn.cluster import KMeans
+
+        # flat = errormap.flatten().reshape(-1, 1)
+        # kmeans = KMeans(n_clusters=2)
+        # fittet = kmeans.fit(flat)
+        # c1_centroid = fittet.cluster_centers_[0][0]
+        # c2_centroid = fittet.cluster_centers_[1][0]
+        # detectionMap = fittet.labels_
+
+        # if c1_centroid > c2_centroid:
+        #     detectionMap = detectionMap * -1 + 1
+        
+        # errormap = detectionMap.reshape(errormap.shape)
 
         errormap[errormap > baseline] = 1.0
         errormap[errormap <= baseline] = 0.0
 
+        # flat = errormap.flatten()
+        # errormap = self.is_outlier(flat).reshape(errormap.shape)
+
         return errormap # shape: w,h
+
+    def is_outlier(self, points, thresh=3.5):
+        """
+        Returns a boolean array with True if points are outliers and False 
+        otherwise.
+
+        Parameters:
+        -----------
+            points : An numobservations by numdimensions array of observations
+            thresh : The modified z-score to use as a threshold. Observations with
+                a modified z-score (based on the median absolute deviation) greater
+                than this value will be classified as outliers.
+
+        Returns:
+        --------
+            mask : A numobservations-length boolean array.
+
+        References:
+        ----------
+            Boris Iglewicz and David Hoaglin (1993), "Volume 16: How to Detect and
+            Handle Outliers", The ASQC Basic References in Quality Control:
+            Statistical Techniques, Edward F. Mykytka, Ph.D., Editor. 
+        """
+        if len(points.shape) == 1:
+            points = points[:,None]
+        median = np.median(points, axis=0)
+        diff = np.sum((points - median)**2, axis=-1)
+        diff = np.sqrt(diff)
+        med_abs_deviation = np.median(diff)
+
+        modified_z_score = 0.6745 * diff / med_abs_deviation
+        k = modified_z_score > thresh
+        p = np.zeros((len(points)))
+        for x in range(len(p)):
+            if k[x] == True:
+                p[x] = 1.0
+        return p
 
     # colors the pixels that are anomalys
     def colorDetectionMap(self, dtMap):

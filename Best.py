@@ -46,20 +46,6 @@ task.set_base_docker(
             )
 task.execute_remotely('rtx3090', clone=False, exit_process=True) 
 
-train_root = Dataset.get(dataset_id=TRAIN_ID).get_local_copy()
-train_data = Sampler.load_Images(train_root).astype("float32") / 255
-
-# images = np.array([img, img, img, img])
-for x in range(len(train_data)):
-    img = train_data[x]
-    counter = 0
-    for y in range(len(train_data)):
-        if not x == y:
-            tmp = img - train_data[y]
-            if np.sum(tmp) == 0.:
-                counter += 1
-    print(f"Found: {counter}")
-
 
 ###lr anpassen auch die early stops
 # epoch = 2500

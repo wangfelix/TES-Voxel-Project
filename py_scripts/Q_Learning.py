@@ -59,10 +59,11 @@ def main(withAE, concatAE):
     env = Environment(world="Town01_Opt", host="localhost", port=2000, s_width=256, s_height=256, cam_height=4.5, cam_rotation=-90, cam_zoom=130, random_spawn=False)
     env.init_ego()
 
-    trainer = Training(writer, device, withAE=withAE)
+    trainer = Training(writer, device, concatAE=concatAE)
 
     epsilon = EPS_START
     reward_best = -1000
+    reward_per_episode_list = []
 
     for i in range(N_EPISODES):
 
@@ -110,9 +111,9 @@ def main(withAE, concatAE):
                 coloredDetectionMap = evaluater.getColoredDetectionMap(obs_next)
                 coloredDetectionMap = np.transpose(coloredDetectionMap, (2,1,0))
 
-            # if withAE:
-            #     detectionMap = evaluater.getDetectionMap(obs_next)
-            #     reward = calcualte_enriched_reward(reward, detectionMap, DISTANCE_MATRIX)
+            if withAE and not concatAE:
+                detectionMap = evaluater.getDetectionMap(obs_next)
+                reward = calcualte_enriched_reward(reward, detectionMap, DISTANCE_MATRIX)
                 # print(reward)
                 
 
@@ -125,6 +126,7 @@ def main(withAE, concatAE):
                 done = True
 
             if done:
+                reward_per_episode_list.append(reward_per_episode)
                 obs_next = None
             else:
                 # if withAE:
@@ -149,6 +151,7 @@ def main(withAE, concatAE):
                 end = time.time()
                 duration = end - start
                 writer.add_scalar("Reward per episode", reward_per_episode, i)
+                writer.add_scalar("Average reward of all episodes", np.average(reward_per_episode_list), i)
                 writer.add_scalar("Duration before crash/seconds", duration, i)
                 writer.add_scalar("Frames before crash/frames", n_frame, i)
 

@@ -81,8 +81,8 @@ class Sampler:
         env.init_ego()
         # image, segmentation = env.reset()
         env.reset()
-        x = random.randrange(4,15)
-        # env.spawn_anomaly_ahead(distance=x)
+        x = random.randrange(12,16)
+        env.spawn_anomaly_ahead(distance=x)
         # env.spawn_anomaly_alongRoad(max_numb=6)
         # env.plotWaypoints()
         # time.sleep(20)
@@ -202,7 +202,7 @@ class Sampler:
             # are we waiting at a red light ? >> ignore snap
             if Sampler.euclid_dist(pre_position, position) > .5 :
                 image = (image * 255).astype("int")
-                cv2.imwrite(storagePath + f"snap_{save_index + 29789}.png", image) 
+                cv2.imwrite(storagePath + f"snap_{save_index}.png", image) 
                 save_index += 1
                 x = x + 1
             pre_position = np.array(position)

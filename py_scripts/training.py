@@ -22,6 +22,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from dqn_model import DQN
+from dqn_model import DQN_DQN
 
 from env_carla import N_ACTIONS
 
@@ -45,12 +46,16 @@ class ReplayMemory(object):
 
 
 class Training:
-    def __init__(self, writer, device: torch.device, withAE=False):
+    def __init__(self, writer, device: torch.device, concatAE):
         self.device = device
         self.writer = writer
 
-        self.policy_net = DQN(withAE).to(self.device)
-        self.target_net = DQN(withAE).to(self.device)
+        if concatAE:
+            self.policy_net = DQN_DQN().to(self.device)
+            self.target_net = DQN_DQN().to(self.device)
+        else:
+            self.policy_net = DQN().to(self.device)
+            self.target_net = DQN().to(self.device)
 
         self.target_net.eval()  # switch target_net to inference mode (normalisation layers use running statistics, de-activates Dropout layers)
         self.optimizer = optim.Adam(self.policy_net.parameters())  # was RMSprop
