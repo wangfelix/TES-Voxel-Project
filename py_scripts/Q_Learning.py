@@ -10,6 +10,7 @@ import time
 import torch
 import numpy as np
 import argparse
+import math
 
 import os
 import sys
@@ -69,7 +70,8 @@ def main(withAE, concatAE):
     reward_best = -1000
     reward_per_episode_list = []
     duration_per_episode_list = []
-    travel_dist_list = []
+    travel_dist_per_episode_list = []
+    frames_per_episode_list = []
     spawn_point = None
     end_point = None
 
@@ -81,7 +83,7 @@ def main(withAE, concatAE):
 
         env.reset()
         env.spawn_anomaly_alongRoad(max_numb=20)
-        spawn_point = env.get_Vehicle_positionVec
+        spawn_point = env.get_Vehicle_positionVec()
 
         obs_current = env.get_observation()
         obs_current = obs_current[0] #no segemntation
@@ -161,14 +163,30 @@ def main(withAE, concatAE):
                 end = time.time()
                 duration = end - start
                 duration_per_episode_list.append(duration)
-                travel_dist = np.linalg.norm(spawn_point - end_point)
-                travel_dist_list.append(travel_dist)
-                writer.add_scalar("Reward per episode", reward_per_episode, i)
-                writer.add_scalar("Average reward of all episodes/avg reward", np.average(reward_per_episode_list), i)
-                writer.add_scalar("Average travel distance of all episodes/avg distance", np.average(travel_dist_list), i)
-                writer.add_scalar("Average duration before crash of all episodes/avg duration", np.average(duration_per_episode_list), i)
-                writer.add_scalar("Duration before crash/seconds", duration, i)
-                writer.add_scalar("Frames before crash/frames", n_frame, i)
+                travel_dist = math.dist(spawn_point, end_point)
+                travel_dist_per_episode_list.append(travel_dist)
+                frames_per_episode_list.append(n_frame)
+
+                reward_scalars = {
+                    'Reward': reward_per_episode,
+                    'avg_reward': np.average(reward_per_episode_list)
+                }
+                dist_scalars = {
+                    'distance': travel_dist,
+                    'avg_distance': np.average(travel_dist_per_episode_list)
+                }
+                duration_scalars = {
+                    'duration': duration,
+                    'avg_duration': np.average(duration_per_episode_list)
+                }
+                frame_scalars = {
+                    'frames': n_frame,
+                    'avg_frames': np.average(frames_per_episode_list)
+                }
+                writer.add_scalars("Reward", reward_scalars, i)
+                writer.add_scalars("Distance", dist_scalars, i)
+                writer.add_scalars("Duration", duration_scalars, i)
+                writer.add_scalars("Frame", frame_scalars, i)
 
                 if reward_per_episode > reward_best:
                     reward_best = reward_per_episode

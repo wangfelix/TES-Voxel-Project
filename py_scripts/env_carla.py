@@ -184,7 +184,7 @@ class Environment:
         done = False
         if len(self.collision_hist) != 0:
             done = True
-            reward = -1
+            reward = -100
         elif v_kmh < 20:
             reward = v_kmh / (80 - 3*v_kmh)
         else:
