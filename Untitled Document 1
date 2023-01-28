@@ -1,0 +1,906 @@
+<pre><font color="#4E9A06"><b>tes_local@tks-train-03</b></font>:<font color="#3465A4"><b>~</b></font>$ history
+    1  sudo useradd -m -G sudo -s /usr/bin/bash polley_local
+    2  sudo passwd polley_local
+    3  sudo apt-get install openssh-server
+    4  exit
+    5  ls
+    6  cd Desktop/
+    7  mkdir CARLA
+    8  cd CARLA/
+    9  wget https://carla-releases.s3.eu-west-3.amazonaws.com/Linux/CARLA_0.9.14.tar.gz
+   10  lshw -C display
+   11  sudo apt-get update &amp;&amp; apt-get upgrade
+   12  sudo apt-get update
+   13  sudo apt-get upgrade
+   14  cd CARLA/
+   15  wget https://carla-releases.s3.eu-west-3.amazonaws.com/Linux/AdditionalMaps_0.9.14.tar.gz
+   16  wget https://carla-releases.s3.eu-west-3.amazonaws.com/Linux/CARLA_0.9.14_RSS.tar.gz
+   17  ls
+   18  tar xvf *.gz
+   19  ls
+   20  tar -zxvf CARLA_0.9.14.tar.gz 
+   21  tar -zxvf CARLA_0.9.14_RSS.tar.gz 
+   22  tar -zxvf AdditionalMaps_0.9.14.tar.gz 
+   23  cd 0-9-14/
+   24  ./CarlaUE4.sh
+   25  ./CarlaUE4.sh -opengl
+   26  lspci | grep -i nvidia
+   27  sudo apt-get upgrade
+   28  sudo apt-get update
+   29  sudo apt-get upgrade
+   30  gcc --version
+   31  sudo apt install gcc
+   32  uname -r
+   33  sudo apt-get install linux-headers-$(uname -r)
+   34  sudo apt-key del 7fa2af80
+   35  sudo dpkg -i cuda-repo-&lt;distro&gt;_&lt;version&gt;_&lt;architecture&gt;.deb
+   36  sudo apt-get update
+   37  sudo apt-get install cuda
+   38  sudo apt-get install nvidia-gds
+   39  wget https://developer.download.nvidia.com/compute/cuda/repos/$distro/$arch/cuda-keyring_1.0-1_all.deb
+   40  sudo apt install nvidia-cuda-toolkit
+   41  sudo apt install xrdp
+   42  sudo systemctl enable --now xrdp
+   43  sudo ufw allow from any to any port 3389 proto tcp
+   44  ls
+   45  cd Desktop/
+   46  ls
+   47  cd CARLA/0-9-14/
+   48  ./CarlaUE4.sh
+   49  xrandr -q
+   50  cd CARLA/0-9-14/
+   51  cd Desktop/
+   52  cd CARLA/0-9-14/
+   53  ./CarlaUE4.sh
+   54  cd Desktop/
+   55  cd CARLA/0-9-14/
+   56  ./CarlaUE4.sh
+   57  &lt;sudo apt-get purge \*nvidia\* ; sudo apt-get install nvidia-driver-340 nvidia-settings
+   58  sudo prime-select nvidia
+   59  lspci -k | grep -A 2 -i &quot;VGA&quot;
+   60  software-properties-gtk
+   61  sudo ubuntu-drivers devices
+   62  sudo ubuntu-drivers devices
+   63  nvidia-settings
+   64  sudo ubuntu-drivers autoinstall
+   65  sudo ubuntu-drivers autoinstall
+   66  nvidia-settings
+   67  sudo ubuntu-drivers devices
+   68  software-properties-gtk
+   69  sudo prime-select nvidia
+   70  sudo ubuntu-drivers autoinstall
+   71  nvidia-settings 
+   72  dpkg -l | grep nvidia-
+   73  apt purge *nvidia*
+   74  apt purge *nvidia*
+   75  sudo apt purge *nvidia*
+   76  open .
+   77  ls
+   78  chmod +x NVIDIA-Linux-x86_64-525.78.01.run 
+   79  ./NVIDIA-Linux-x86_64-525.78.01.run 
+   80  chmod 755 NVIDIA-Linux-x86_64-525.78.01.run 
+   81  sudo ./NVIDIA-Linux-x86_64-525.78.01.run 
+   82  sudo apt purge *nvidia*
+   83  sudo ./NVIDIA-Linux-x86_64-525.78.01.run 
+   84  systemctl isolate multi-user.target
+   85  sudo apt-get purge nvidia*
+   86  sudo apt-get autoremove
+   87  sudo ./NVIDIA-Linux-x86_64-525.78.01.run 
+   88  udo apt-get purge nvidia*
+   89  s&gt;udo apt-get purge nvidia*
+   90  sudo apt-get purge nvidia*
+   91  sudo apt-get autoremove
+   92  cd Documents/
+   93  sudo ./NVIDIA-Linux-x86_64-525.78.01.run 
+   94  sudo apt-get purge nvidia*
+   95  sudo apt-get autoremove
+   96  sudo ubuntu-drivers autoinstall
+   97  nvidia-settings 
+   98  sudo apt-get install nvidia-prime
+   99  nvidia-settings 
+  100  sudo ubuntu-drivers autoinstall
+  101  nvidia-settings
+  102  sudo apt-get purge nvidia*
+  103  sudo apt-get autoremove
+  104  sudo vim /etc/modprobe.d/blacklist.conf
+  105  sudo nano /etc/modprobe.d/blacklist.conf
+  106  sudo apt-get remove --purge nvidia-*
+  107  sudo service lightdm stop
+  108  sudo service lightdm stopat /etc/X11/default-display-manager
+  109  at /etc/X11/default-display-manager
+  110  cat /etc/X11/default-display-manager
+  111  sudo update-initramfs -u
+  112  sudo /etc/init.d/gdm3 stop
+  113  cd Desktop/
+  114  cd CARLA/
+  115  ks
+  116  ls
+  117  cd 0-9-14/
+  118  ls
+  119  ./CarlaUE4.sh 
+  120  cd
+  121  ls
+  122  git pull git@ids-git.fzi.de:eo233/voxelworld.git
+  123  sudo apt install git
+  124  git clone git@ids-git.fzi.de:eo233/voxelworld.git
+  125  ssh-keygen
+  126  cat ~/.ssh/id_rsa.pub
+  127  git clone git@ids-git.fzi.de:eo233/voxelworld.git
+  128  ls voxelworld/
+  129  cd voxelworld/
+  130  python3 -m venv env
+  131  apt install python3.8-venv
+  132  sudo apt install python3.8-venv
+  133  python3 -m venv env
+  134  ls
+  135  touch .gitignore
+  136  nano .gitignore 
+  137  git status
+  138  nano .gitignore 
+  139  git status
+  140  nano .gitignore 
+  141  source env/bin/activate
+  142  git status
+  143  git add .
+  144  git commit -m&quot;added .gitignore&quot;
+  145  git config --global user.email &quot;urtma@student.kit.edu.com&quot;
+  146  git config --global user.name &quot;TES Team&quot;
+  147  git commit -m&quot;added .gitignore&quot;
+  148  git pu sh
+  149  git push
+  150  ls
+  151  cd
+  152  cd Desktop/
+  153  cd CARLA/
+  154  cd 0-9-14/
+  155  ls
+  156  pip install -r requirements.txt 
+  157  pip install -r requirements.txt 
+  158  sudo apt install python3-pip
+  159  pip install -r requirements.txt 
+  160  pip install -r requirements.txt 
+  161  code .
+  162  cd voxelworld/
+  163  code .
+  164  cd voxelworld/
+  165  ./env/bin/activate 
+  166  cd Desktop/
+  167  ls
+  168  cd CARLA/
+  169  ls
+  170  cd 0-9-14/
+  171  ls
+  172  cd PythonAPI/
+  173  ls
+  174  cd examples/
+  175  ls
+  176  python generate_traffic.py 
+  177  thon3 generate_traffic.py 
+  178  python33n generate_traffic.py 
+  179  python3 generate_traffic.py 
+  180  python3 -m pip install -r requirements.txt
+  181  python3 generate_traffic.py 
+  182  python3 manual_control.py
+  183  python -version
+  184  python3 -version
+  185  python
+  186  python3
+  187  cd ..
+  188  ls
+  189  ./CarlaUE4.sh
+  190  python manual_control.py
+  191  ls ./env/
+  192  python3 -m venv env
+  193  git pull origin master
+  194  git stash
+  195  git pull origin master
+  196  git pull origin main
+  197  git stash
+  198  git status
+  199  git stash env/
+  200  git pull origin main
+  201  cd ./env/bin/
+  202  ls
+  203  ./activate
+  204  sudo ./activate
+  205  sudo activate
+  206  ls
+  207  sudo chmo
+  208  sudo chmod +x activate
+  209  ./activate 
+  210  pip
+  211  pip install carla
+  212  cd Desktop/
+  213  ls
+  214  cd CARLA/
+  215  ls
+  216  cd 0-9-14/
+  217  ls
+  218  ./CarlaUE4.sh
+  219  ls
+  220  cd PythonAPI/
+  221  ls
+  222  cd examples/
+  223  ls
+  224  python3 -m pip install -r requirements.txt
+  225  python3 generate_traffic.py  
+  226  python3 -version
+  227  python3 --version
+  228  pip install carla
+  229  python3 generate_traffic.py  
+  230  ls
+  231  cd ..
+  232  ls
+  233  cd ..
+  234  ls
+  235  cd home/
+  236  ls
+  237  cd tes_local/
+  238  ls
+  239  cd voxelworld/
+  240  ls
+  241  cat README.md 
+  242  ls
+  243  cd ..
+  244  ls
+  245  pip install carla
+  246  pip 
+  247  pip install
+  248  pip install update
+  249  pip install carla
+  250  pip3 install carla
+  251  python
+  252  python3
+  253  sudo apt-get pip
+  254  pip3 install carla
+  255  cd Desktop/
+  256  ls
+  257  cd Ca
+  258  cd CARLA/
+  259  cd 0-9-14/
+  260  ls
+  261  ./CarlaUE4.sh
+  262  cd PythonAPI/
+  263  ls
+  264  cd examples/
+  265  python manual_control
+  266  python3 manual_control.py
+  267  pip install --upgrade pip
+  268  pip install carla
+  269  pip3 install carla
+  270  python3 manual_control.py
+  271  cd
+  272  ls
+  273  cd voxelworld/
+  274  ls
+  275  cd scenario_
+  276  cd scenario_runner/
+  277  ls
+  278  python3 scenario_runner.py --scenario FollowLeadingVehicle_1 --reloadWorld
+  279  pip3 install xmlschema
+  280  python3 scenario_runner.py --scenario FollowLeadingVehicle_1 --reloadWorld
+  281  ls
+  282  pip3 install -r requirements.txt 
+  283  python3 scenario_runner.py --scenario FollowLeadingVehicle_1 --reloadWorld
+  284  python scenario_runner.py --scenario FollowLeadingVehicle_1 --reloadWorld
+  285  open .
+  286  code .
+  287  python3 scenario_runner.py --scenario FollowLeadingVehicle_1 --reloadWorld
+  288  python3 scenario_runner.py --scenario FollowLeadingVehicle1 --reloadWorld
+  289  python3 scenario_runner.py --scenario FollowLeadingVehicle_2 --reloadWorld
+  290  ssh cc222@tks-hazard.fzi.de
+  291  git clone git@ids-git.fzi.de:driving-simulator/carla_fzi_vehicles.git
+  292  ls
+  293  ls carla_fzi_vehicles/
+  294  cd ..
+  295  ls
+  296  CARLA/
+  297  cd CARLA/
+  298  ls
+  299  cd 0-9-14/
+  300  ls
+  301  ls Import
+  302  ls
+  303  cd Import/
+  304  ls
+  305  cd ..
+  306  cd CarlaUE4/
+  307  ls
+  308  cd Content/
+  309  ls
+  310  cd Carla/
+  311  ls
+  312  cd Blueprints/Vehicles/
+  313  ls
+  314  cd ..
+  315  ls
+  316  cd ..
+  317  ls
+  318  cd ..
+  319  cd
+  320  ls
+  321  mkdir unreal
+  322  cd unreal/
+  323  git clone --depth 1 -b carla https://github.com/CarlaUnreal/UnrealEngine.git ~/UnrealEngine_4.26
+  324  git config --global user.name &quot;uchon2287883&quot;
+  325  git config --global user.email &quot;uchon@student.kit.edu&quot;
+  326  git config -l
+  327  git clone --depth 1 -b carla https://github.com/CarlaUnreal/UnrealEngine.git ~/UnrealEngine_4.26
+  328  cd
+  329  cd Desktop/
+  330  ls
+  331  cd CARLA/
+  332  ls
+  333  cd 0-9-14/
+  334  ls
+  335  ./CarlaUE4.sh
+  336  ls
+  337  cd PythonAPI/
+  338  ls
+  339  cd examples/
+  340  ls
+  341  python3 manual_control.py
+  342  flatpak install flathub net.meshlab.MeshLab
+  343  ls
+  344  meshlab 00009042.ply
+  345  sudo apt install meshlab
+  346  meshlab 00009042.ply
+  347  meshlab 00009052.ply
+  348  ls
+  349  cd
+  350  cd Desktop/
+  351  cd CARLA/0-9-14/l
+  352  cd CARLA/0-9-14/
+  353  ls
+  354  ls -a
+  355  cd PythonAPI/
+  356  ls
+  357  cd examples/
+  358  pip3 install -r requirements.txt 
+  359  ls
+  360  cd ..
+  361  ls
+  362  cd carla/
+  363  ls
+  364  pip3 install -r requirements.txt 
+  365  cd ..
+  366  ls
+  367  cd util/
+  368  ls
+  369  pip3 install -r requirements.txt 
+  370  cd ../carla/
+  371  pip3 install -r requirements.txt 
+  372  pip3 install -upgrade pip
+  373  pip3 install --upgrade pip
+  374  pip3 install -r requirements.txt 
+  375  cd
+  376  cd Desktop/
+  377  l
+  378  ls
+  379  cd CARLA/0-9-14/
+  380  ./CarlaUE4.sh 
+  381  cd Documents/
+  382  ls
+  383  sudo ./NVIDIA-Linux-x86_64-525.78.01.run 
+  384  sudo /etc/init.d/gdm3 start
+  385  lsb_release -a
+  386  vim Package01.json
+  387  sudo apte install vim
+  388  sudo apt install vim
+  389  vim Package01.json
+  390  ls
+  391  mkdir Prop01
+  392  cd Prop01/
+  393  ls
+  394  pip3 install ue4-docker
+  395  ue4-docker setup
+  396  pip3 upgrade
+  397  pip list --outdated
+  398  pip --disable-pip-version-check list --outdated --format=json | python -c &quot;import json, sys; print(&apos;\n&apos;.join([x[&apos;name&apos;] for x in json.load(sys.stdin)]))&quot;
+  399  pip3 --disable-pip-version-check list --outdated --format=json | python -c &quot;import json, sys; print(&apos;\n&apos;.join([x[&apos;name&apos;] for x in json.load(sys.stdin)]))&quot;
+  400  pip3 --disable-pip-version-check list --outdated --format=json | python3 -c &quot;import json, sys; print(&apos;\n&apos;.join([x[&apos;name&apos;] for x in json.load(sys.stdin)]))&quot;
+  401  ls
+  402  ue4-docker setup
+  403  pip3 install ue4-docker
+  404  ue4-docker setup
+  405  pip3 install ue4-docker
+  406  ue4-docker setup
+  407  sudo groupadd docker
+  408  sudo usermod -aG docker $(whoami)
+  409  sudo service docker start
+  410  sudo service docker restart
+  411  sudo docker info
+  412  sudo apt-get update
+  413  sudo apt-get install     ca-certificates     curl     gnupg     lsb-release
+  414  sudo mkdir -p /etc/apt/keyrings
+  415  echo   &quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  416    $(lsb_release -cs) stable&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+  417  ls
+  418  sudo apt-get update
+  419  sudo apt-get upgrade
+  420  sudo chmod a+r /etc/apt/keyrings/docker.gpg
+  421  sudo apt-get update
+  422  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  423  ue4-docker clean
+  424  sudo ue4-docker clean
+  425  pip3 install ue4-docker
+  426  ue4-docker setup
+  427  sudo ue4-docker setup
+  428  cd ..
+  429  ls
+  430  cd ..
+  431  ls
+  432  cd ..
+  433  ls
+  434  cd ..
+  435  ls
+  436  cd CARLA/
+  437  ls
+  438  cd 0-9-14/
+  439  ls
+  440  ls Tools/
+  441  ls
+  442  python3 --version
+  443  pip3 install ue4-docker
+  444  ue4-docker setup
+  445  sudo ue4-docker setup
+  446  sudo groupadd docker
+  447  sudo usermod -aG docker $(whoami)
+  448  sudo usermod -aG docker sudo
+  449  sudo service docker start
+  450  sudo ue4-docker setup
+  451  ue4-docker setup
+  452  sudo service docker start
+  453  sudo systemctl start docker
+  454  sudo service docker stop
+  455  sudo rm -rf /var/lib/docker
+  456  sudo service docker start
+  457  install -vm755 &lt;(curl -L https://github.com/docker/machine/releases/download/v0.5.3/docker-machine_linux-amd64) $HOME/bin/docker-machine
+  458  ue4-docker setup
+  459  sudo gpasswd -a $USER docker
+  460  newgrp docker
+  461  systemctl status docker.service
+  462  ue4-docker setup
+  463  ue4-docker build 4.20.3
+  464  ue4-docker build 4.24.3 --no-engine --no-minimal
+  465  git clone https://github.com/adamrehn/ue4-docker.git
+  466  ue4-docker setup
+  467  ls
+  468  cd ue4-docker/
+  469  ls
+  470  ue4-docker setup.py 
+  471  python3 setup.py 
+  472  sudo apt-get install python3 python3-dev python3-pip
+  473  sudo pip3 install ue4-docker
+  474  sudo ue4-docker setup
+  475  ue4-docker setup
+  476  ue4-docker build 4.24.3 --no-engine --no-minimal
+  477  ue4-docker info
+  478  curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey |   sudo apt-key add -
+  479  distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+  480  curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list |   sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+  481  curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey |   sudo apt-key add -
+  482  distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+  483  curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey
+  484  sudo apt-key add -
+  485  https://cnvrg.io/how-to-setup-docker-and-nvidia-docker-2-0-on-ubuntu-18-04/
+  486  sudo apt-key add -
+  487  ue4-docker build 4.24.3 --no-engine --no-minimal
+  488  ue4-docker build 24.3 --no-engine --no-minimal
+  489  ue4-docker build 4.27 --no-engine --no-minimal
+  490  ue4-docker build 4.27 --no-minimal
+  491  ue4-docker build 4.24.3 --no-minimal
+  492  cd ..
+  493  cd 0-9-14/
+  494  make import
+  495  ls
+  496  cd Import/
+  497  ls
+  498  cd..ls
+  499  cd..
+  500  ls
+  501  cd ..
+  502  ls
+  503  ./ImportAssets.sh 
+  504  ls
+  505  sh ImportAssets.sh 
+  506  ./ImportAssets.sh 
+  507  ös
+  508  ls
+  509  ./CarlaUE4.sh 
+  510  cd PythonAPI/
+  511  ls
+  512  cat python_api.md 
+  513  ls
+  514  cd examples/
+  515  ls
+  516  python3 generate_traffic.py 
+  517  python3 dynamic_weather.py 
+  518  ks
+  519  ls
+  520  python3 manual_control
+  521  python3 manual_control.py 
+  522  exit() ls
+  523  ls
+  524  python3 tutorial.py 
+  525  cd Plugins/carlaviz/
+  526  ls
+  527  cd setup/
+  528  ls
+  529  sh setup.sh 
+  530  cd ..
+  531  ls 
+  532  docker build -t carla-prerequisites -f Prerequisites.Dockerfile .
+  533  docker build -t carla -f Carla.Dockerfile .
+  534  ls
+  535  ls Tools/
+  536  ls CarlaUE4
+  537  python3 docker_tools.py --input ~/. --output ~/Desktop/Carla/0-9-13/Import/  --package=Package01
+  538  python3 docker_tools.py --input ~/. --output ~/Desktop/Carla/0-9-13/Import/  --package=Package01cd ..
+  539  ls
+  540  docker Dockerfile
+  541  docker build Dockerfile
+  542  cat Dockerfile 
+  543  python3 docker_tools.py --input ~/. --output ~/Desktop/Carla/0-9-13/Import/  --package=Package01
+  544  sudo -E docker run --rm --gpus all -it --net=host carla:latest /bin/bash
+  545  sudo su $USER
+  546  pip3 install ue4-docker
+  547  ue4-docker setup
+  548  ls
+  549  cd Desktop/
+  550  cd CARLA/
+  551  ls
+  552  cd 0-9-14/
+  553  ls
+  554  cd ue4-docker/
+  555  ls
+  556  ue4-docker setup.py 
+  557  ls ue4docker/
+  558  cd ue4docker/
+  559  python3 main.py 
+  560  python3 setup_cmd.py 
+  561  ls
+  562  cd ..
+  563  ls
+  564  python3 setup.py 
+  565  sudo ue4-docker setup
+  566  sudo ue4-docker build 4.24.3 --no-engine --no-minimal
+  567  sudo ue4-docker build 4.24.3  --no-minimal
+  568  docker build -t carla-prerequisites -f Prerequisites.Dockerfile .
+  569  cd ..
+  570  docker build -t carla-prerequisites -f Prerequisites.Dockerfile .
+  571  pip3 install --upgrade pip
+  572  pip3 install --user  --upgrade pip
+  573  pip install --upgrade pip
+  574  pip install --user --upgrade pip
+  575  pip3 install carla
+  576  pip3 install carla --user
+  577  git clone --depth 1 -b carla https://github.com/CarlaUnreal/UnrealEngine.git ~/UnrealEngine_4.26
+  578  git config --global user.name uchon2287883
+  579  git config --global user.name &quot;uchon2287883&quot;
+  580  git config --global user.email &quot;uchon@student.kit.edu&quot;
+  581  git config -l
+  582  git clone --depth 1 -b carla https://github.com/CarlaUnreal/UnrealEngine.git ~/UnrealEngine_4.26
+  583  git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY
+  584  git remote set-url origin https://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@github.com/uchon2287883/Unreal.git
+  585  git remote set-url origin https://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@github.com/uchon2287883/Anfanger.git
+  586  git push -u origin main
+  587  git remote set-url origin https://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@github.com/uchon2287883/Unreal.git
+  588  git clone --depth 1 -b carla https://github.com/CarlaUnreal/UnrealEngine.git ~/UnrealEngine_4.26
+  589  cd UnrealEngine/
+  590  ls
+  591  git clone --depth 1 -b carla https://github.com/CarlaUnreal/UnrealEngine.git ~/UnrealEngine_4.26
+  592  ls
+  593  git clone --depth 1 -b carla https://github.com/CarlaUnreal/UnrealEngine.git ~/UnrealEngine_4.26
+  594  ls
+  595  cd
+  596  cd UnrealEngine_4.26/
+  597  ./Setup.sh &amp;&amp; ./GenerateProjectFiles.sh &amp;&amp; make
+  598  cd Engine/
+  599  ls
+  600  cd B
+  601  cd Binaries/
+  602  ls
+  603  git clone https://ids-git.fzi.de/driving-simulator/carla_fzi_vehicles.git
+  604  git status
+  605  ./UE4Editor
+  606  ./UE4Editor &quot;$PWD/CarlaUE4.uproject&quot;
+  607  ./UE4Editor &quot;$PWD/CarlaUE4.urproject&quot;
+  608  cd ~/carla/Unreal/CarlaUE4/
+  609  ~/UnrealEngine_4.18/Engine/Binaries/Linux/UE4Editor &quot;$PWD/CarlaUE4.uproject&quot;
+  610  cd ~/carla/Unreal/CarlaUE4/
+  611  ös
+  612  ls
+  613  cd Desktop/
+  614  cd CARLA/
+  615  ls
+  616  cd 0-9-14/
+  617  ls
+  618  cd CarlaUE4/
+  619  ls
+  620  export UE4_ROOT=~/UnrealEngine_4.26
+  621  gedit ~/.bashrc
+  622  cd ~/UnrealEngine_4.26/Engine/Binaries/Linux &amp;&amp; ./UE4Editor
+  623  cd Desktop/
+  624  ls
+  625  cd CARLA/
+  626  ls
+  627  cd 0-9-14/
+  628  ls
+  629  ./CarlaUE4.sh
+  630  https://github.com/wangfelix/TES-Voxel-Project.git
+  631  git clone https://github.com/wangfelix/TES-Voxel-Project.git
+  632  cd 
+  633  cd Desktop/
+  634  ls
+  635  cd CARLA/
+  636  cd 0-9-14/
+  637  ls
+  638  ./CarlaUE4.sh
+  639  /bin/python3 /home/tes_local/Desktop/Iramm/TES-Voxel-Project/ForLukas.py
+  640  code .
+  641  git clone --depth 1 -b carla https://github.com/CarlaUnreal/UnrealEngine.git ~/UnrealEngine_4.26
+  642  cd ~/UnrealEngine_4.26
+  643  ./Setup.sh &amp;&amp; ./GenerateProjectFiles.sh &amp;&amp; make
+  644  git clone https://github.com/carla-simulator/carla.git
+  645  ls
+  646  cd carla/
+  647  ls
+  648  ./Update.sh 
+  649  ./Setup.sh 
+  650  ./BuildCarlaUE4.sh 
+  651  ./Setup.sh 
+  652  ls
+  653  ./Check.sh 
+  654  cd ~/UnrealEngine_4.26/Engine/Binaries/Linux &amp;&amp; ./UE4Editor
+  655  cd ~/carla/Unreal/CarlaUE4/
+  656  ~/UnrealEngine_4.18/Engine/Binaries/Linux/UE4Editor &quot;$PWD/CarlaUE4.uproject&quot;
+  657  cd
+  658  pip install carla
+  659  pip install carla --user
+  660  ls
+  661  ös
+  662  cd ..
+  663  ös
+  664  cd
+  665  ls 
+  666  cd Desktop/
+  667  ls
+  668  cd CARLA/
+  669  ls
+  670  cd 0-9-14/
+  671  ls
+  672  ./CarlaUE4.sh
+  673  ~/UnrealEngine_4.18/Engine/Binaries/Linux/UE4Editor &quot;$PWD/CarlaUE4.uproject&quot;
+  674  cd ~/UnrealEngine_4.26/Engine/Binaries/Linux &amp;&amp; ./UE4Editor
+  675  make clean
+  676  git checkout master
+  677  cd ~/UnrealEngine_4.26
+  678  ./Setup.sh &amp;&amp; ./GenerateProjectFiles.sh &amp;&amp; make
+  679  cd
+  680  sudo apt-get update &amp;&amp; sudo apt-get install wget software-properties-common &amp;&amp; sudo add-apt-repository ppa:ubuntu-toolchain-r/test &amp;&amp; wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - &amp;&amp; sudo apt-add-repository &quot;deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main&quot; &amp;&amp; sudo apt-get update
+  681  sudo apt-add-repository &quot;deb http://apt.llvm.org/focal/ llvm-toolchain-focal main&quot;
+  682  sudo apt-get install build-essential clang-10 lld-10 g++-7 cmake ninja-build libvulkan1 python python-dev python3-dev python3-pip libpng-dev libtiff5-dev libjpeg-dev tzdata sed curl unzip autoconf libtool rsync libxml2-dev git
+  683  sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-10/bin/clang++ 180 &amp;&amp; sudo update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-10/bin/clang 180
+  684  pip3 -V
+  685  pip install --user setuptools &amp;&amp; pip3 install --user -Iv setuptools==47.3.1 &amp;&amp; pip install --user distro &amp;&amp; pip3 install --user distro &amp;&amp; pip install --user wheel &amp;&amp; pip3 install --user wheel auditwheel
+  686  pip
+  687  pip -V
+  688  pip3 install --upgrade pip --user
+  689  pip install --upgrade pip
+  690  pip install --upgrade pip --user
+  691  pip
+  692  pip -V
+  693  pip3 -V
+  694  pip3 install --upgrade pip
+  695  pip3 install--upgrade pip
+  696  pip3 install --upgrade pip
+  697  pip install --upgrade pip
+  698  pip install --user setuptools &amp;&amp;
+  699  ./Setup.sh &amp;&amp; ./GenerateProjectFiles.sh &amp;&amp; make
+  700  cd
+  701  sudo apt-get update &amp;&amp; sudo apt-get install wget software-properties-common &amp;&amp; sudo add-apt-repository ppa:ubuntu-toolchain-r/test &amp;&amp; wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - &amp;&amp; sudo apt-add-repository &quot;deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main&quot; &amp;&amp; sudo apt-get update
+  702  export UE4_ROOT=~/UnrealEngine_4.26
+  703  gedit ~/.bashrc
+  704  pip install -r requirements.txt 
+  705  pip3 install -r requirements.txt 
+  706  make PythonAPI
+  707  cd ...
+  708  cd ..
+  709  make PythonAPI
+  710  make launch
+  711  make
+  712  cd PythonAPI/
+  713  make python_api
+  714  make python_api.md
+  715  git clone https://github.com/carla-simulator/carla
+  716  ./Update.sh
+  717  ls
+  718  cd PythonAPI/
+  719  ls
+  720  make PythonAPI
+  721  make PythonAPI
+  722  make launch
+  723  tmux
+  724  sudo apt  install tmux
+  725  tmux
+  726  https://ids-git.fzi.de/driving-simulator/carla_fzi_vehicles.git
+  727  git clone https://ids-git.fzi.de/driving-simulator/carla_fzi_vehicles.git
+  728  make launch
+  729  make clean
+  730  make launch
+  731  make rebuild
+  732  make clean
+  733  make launch
+  734  git clone https://github.com/wangfelix/TES-Voxel-Project.git
+  735  code .
+  736  cd Desktop/
+  737  ls
+  738  cd CARLA/
+  739  ls
+  740  cd carla/
+  741  ls
+  742  cd PythonAPI/
+  743  ls
+  744  cd examples/
+  745  ls
+  746  python3 manual_control.py
+  747  python3 manual_control.py --filter Shuttle_FZI
+  748  python3 manual_control.py --filter 
+  749  python3 manual_control.py
+  750  python3 manual_control.py --filter &quot;Shuttle_FZI&quot;
+  751  python3 manual_control.py --filter vehicle.audi.az
+  752  python3 manual_control.py --filter vehicle.audi.a2
+  753  python3 manual_control.py --filter vehicle.Shuttle_FZI
+  754  python3 manual_control.py --filter evashuttle
+  755  python3 manual_control.py --filter evaShuttle
+  756  python3 manual_control.py --filter fzi
+  757  git clone https://ids-git.fzi.de/driving-simulator/carla_fzi_vehicles.git
+  758  make clean 
+  759  make launch
+  760  make import
+  761  ls
+  762  make clean
+  763  make launch
+  764  ./Update.sh 
+  765  make clean
+  766  make check
+  767  make launch
+  768  make
+  769  ./Update.sh
+  770  ./Update.sh 
+  771  make clean
+  772  make launch
+  773  make 
+  774  make launch-only
+  775  make clean
+  776  ./setup.py 
+  777  pip3 install -r requirements.txt 
+  778  ./CarlaUE4
+  779  ./CarlaUE4.sh
+  780  pip3 install -r requirements.txt 
+  781  pip3 install -r requirements.txt 
+  782  pip3 install -r requirements.txt  --user
+  783  pip3 install requirements.txt 
+  784  pip3 install -r  requirements.txt 
+  785  ./CarlaUE4.sh
+  786  /bin/python3 /home/tes_local/Desktop/Iramm/TES-Voxel-Project/obje.py
+  787  ./CarlaUE4.sh
+  788  pip3 install -r requirements.txt 
+  789  python3 scenario_runner.py --scenario FollowLeadingVehicle_1 --reloadWorld
+  790  python scenario_runner.py --scenario FollowLeadingVehicle_1 --reloadWorld
+  791  pip list
+  792  python scenario_runner.py --scenario FollowLeadingVehicle_1 --reloadWorld
+  793  code .
+  794  pip install --upgrade numpy
+  795  git clone https://github.com/wangfelix/TES-Voxel-Project.git
+  796  make clean
+  797  make PythonAPI
+  798  make LibCarla
+  799  make launch
+  800  make launch-only
+  801  /bin/python3 /home/tes_local/Desktop/Iramm/TES-Voxel-Project/ForLukas.py
+  802  make clean 
+  803  make
+  804  make pythonAPI
+  805  make PythonAPI
+  806  make clean
+  807  pip3 install -r requirements.txt 
+  808  pip install numpy==1.19.5
+  809  code .
+  810  make launch-only
+  811  code .
+  812  ./CarlaUE4.sh
+  813  python3 scenario_runner.py --scenario OppositeVehicleRunningRedLight_1 --realodWorld
+  814  make launch
+  815  /bin/python3 /home/tes_local/Desktop/Iramm/TES-Voxel-Project/ForLukas.py
+  816  ./CarlaUE4.sh
+  817  make launch-only
+  818  ./CarlaUE4.sh
+  819  make PythonAPI
+  820  source /home/tes_local/voxelworld/env/bin/activate
+  821  make clean
+  822  code .
+  823  make PythonAPI
+  824  code .
+  825  ./CarlaUE4.sh
+  826  /bin/python3 /home/tes_local/Desktop/Iramm/TES-Voxel-Project/ForLukas.py
+  827  make rebuild
+  828  /bin/python3 /home/tes_local/Desktop/Iramm/TES-Voxel-Project/ForLukas.py
+  829  code .
+  830  ./CarlaUE4.sh
+  831  ./Update.sh 
+  832  make
+  833  make clean
+  834  make PythonAPI
+  835  pip install -r requirements.txt 
+  836  python manual_control.py
+  837  pip install -r requirements.txt 
+  838  python manual_control.py
+  839  source /home/tes_local/voxelworld/env/bin/activate
+  840  code .
+  841  code .
+  842  ./CarlaUE4.sh
+  843  make PythonAPI
+  844  pip3 install --user setuptools 
+  845  pip2 install --user setuptools
+  846  pip3 install setuptools 
+  847  make PythonAPI
+  848  make launch
+  849  /bin/python3 /home/tes_local/Desktop/Iramm/TES-Voxel-Project/ForLukas.py
+  850  ./CarlaUE4.sh
+  851  ./CarlaUE4.sh
+  852  ./CarlaUE4.sh
+  853  make LibCarla
+  854  make setup
+  855  make package
+  856  pip3 install --user distro
+  857  make launch-only
+  858  /bin/python3 /home/tes_local/Desktop/Iramm/TES-Voxel-Project/ForLukas.py
+  859  source activate
+  860  cd
+  861  ls
+  862  cd Desktop/
+  863  ls
+  864  cd Iramm/
+  865  ls
+  866  code .
+  867  source activate
+  868  cd
+  869  ls
+  870  cd Desktop/
+  871  ls
+  872  cd CARLA/
+  873  ls
+  874  cd 0-9-14/
+  875  ls
+  876  ./CarlaUE4.sh
+  877  make
+  878  make help
+  879  pip list
+  880  ./ImportAssets.sh 
+  881  pip install -r requirements.txt 
+  882  pip install -r requirements.txt  --user
+  883  python3 manual_control.py
+  884  pip install -r requirements.txt 
+  885  python3 manual_control.py
+  886  pip install -r requirements.txt --user
+  887  python3 ForLukas.py 
+  888  ./CarlaUE4.sh
+  889  ./CarlaUE4.sh
+  890  pip3 uninstall carla
+  891  pip3 install carla
+  892  python3 manual_control.py
+  893  pip3 uninstall carla
+  894  pip uninstall carla
+  895  pip install carla
+  896  pip3 install carla
+  897  python3 manual_control.py
+  898  ./CarlaUE4.sh
+  899  ./ImportAssets.sh 
+  900  /bin/python3 /home/tes_local/Desktop/Iramm/TES-Voxel-Project/ForLukas.py
+  901  python3 manual_control.py
+  902  ./CarlaUE4.sh
+  903  code .
+  904  history
+</pre>
